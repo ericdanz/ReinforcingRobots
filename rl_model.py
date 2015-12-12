@@ -150,14 +150,14 @@ class ActionLearner(object):
 
         self.output = self.hiddenLayer3.output
 
-        def single_action_cost(self, y):
-            #only get the cost for the nonzero y
-            index = numpy.nonzero(y)
-            true_cost = y[index]
-            y = self.output.copy()
-            y[index] = true_cost
-            #returns the euc sq error
-            return (y - self.output)**2
+    def single_action_cost(self, y):
+        #only get the cost for the nonzero y
+        index = numpy.nonzero(y)
+        true_cost = y[index]
+        y = self.output.copy()
+        y[index] = true_cost
+        #returns the euc sq error
+        return (y - self.output)**2
 
-        def return_action(self):
-            return self.output
+    def return_action(self):
+        return self.output

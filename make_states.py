@@ -23,18 +23,33 @@ def make_one_set(simulator,actor,epsilon,number_of_steps):
         if numpy.random.uniform() < epsilon:
             #do a random action
             action = numpy.random.randint(actor.number_of_actions)
-            screen,score = simulator.do_action(action)
-            screen,score = simulator.do_action(action)
-            screen,score = simulator.do_action(action)
-            state.append([screen,score,action])
-            state_list.append(copy.copy(state))
         else:
             action = actor.return_action(simulator.screen)
-            screen,score = simulator.do_action(action)
-            screen,score = simulator.do_action(action)
-            screen,score = simulator.do_action(action)
-            state.append([screen,score,action])
-            state_list.append(copy.copy(state))
+
+        screen,score,end = simulator.do_action(action)
+        #do the action another 3 times, just to move games along faster
+        if end == None:
+            screen,score,end = simulator.do_action(action)
+        if end == None:
+            screen,score,end = simulator.do_action(action)
+        if end == None:
+            screen,score,end = simulator.do_action(action)
+        #check if the actor won!
+        if end:
+            #propogate the reward back
+            reward = score
+            discount_iterator = 1
+            discount_factor = 0.1
+            for state in reversed(state_list):
+                #this starts at the state before the win
+                #the reward can be decreased linearly or exponentially
+                #this will do it linearly
+                state[0][1] += reward*(1- (discount_factor*discount_iterator))
+                discount_iterator += 1
+
+        state.append([screen,score,action])
+        state_list.append(copy.copy(state))
+
     return state_list
 
 class FakeActor:

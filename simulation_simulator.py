@@ -23,8 +23,8 @@ class Simulator:
         self.check_max()
         self.render()
         if self.did_win():
-            return self.screen,self.reward
-        return self.screen,self.score()
+            return self.screen,self.reward,True
+        return self.screen,self.score(),None
 
     def render(self):
         #blank the screen
