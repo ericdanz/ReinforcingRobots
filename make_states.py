@@ -10,7 +10,8 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games):
     game_list = []
     for i in range(number_of_games):
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
-        game_list.append(state_list)
+        for state in state_list:
+            game_list.append(state)
     return game_list
 
 

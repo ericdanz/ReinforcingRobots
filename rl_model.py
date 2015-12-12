@@ -6,6 +6,12 @@ import numpy
 
 import theano
 import theano.tensor as T
+from theano.tensor.nnet import conv
+from theano.tensor.signal import downsample
+
+
+def relu(x):
+    return theano.tensor.switch(x<0, 0, x)
 
 class LeNetConvPoolLayer(object):
     """Pool Layer of a convolutional network """
@@ -67,7 +73,7 @@ class LeNetConvPoolLayer(object):
 
 class HiddenLayer(object):
     def __init__(self, rng, input, n_in, n_out, W=None, b=None,
-                 activation=T.nnet.relu):
+                 activation=relu):
 
         self.input = input
 
@@ -110,7 +116,7 @@ class ActionLearner(object):
         rng=rng,
         input=input,
         image_shape=(batch_size, 3, 64, 64),
-        filter_shape=(n_filters, 1, 5, 5),
+        filter_shape=(n_filters, 3, 5, 5),
         poolsize=(2, 2)
         )
 
@@ -121,7 +127,7 @@ class ActionLearner(object):
             input=layer1_input,
             n_in=n_filters*30*30,
             n_out=n_hidden,
-            activation=T.nnet.relu
+            activation=relu
         )
 
         self.hiddenLayer3 = HiddenLayer(
@@ -129,16 +135,16 @@ class ActionLearner(object):
             input=self.hiddenLayer2.output,
             n_in=n_hidden,
             n_out=4,
-            activation=T.nnet.relu
+            activation=relu
         )
 
         self.L2_sqr = (
-            (self.hiddenLayer1.W ** 2).sum()
+            (self.convLayer1.W ** 2).sum()
             + (self.hiddenLayer2.W ** 2).sum()
             + (self.hiddenLayer3.W ** 2).sum()
         )
 
-        self.params = self.hiddenLayer1.params + self.hiddenLayer2.params + self.hiddenLayer3.params
+        self.params = self.convLayer1.params + self.hiddenLayer2.params + self.hiddenLayer3.params
 
         self.input = input
 
