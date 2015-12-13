@@ -28,6 +28,7 @@ class ActionLearner(object):
         h_conv1 = tf.nn.relu(conv2d(self.x, W_conv1) + b_conv1)
         h_pool1 = max_pool_2x2(h_conv1)
 
+
         W_fc1 = weight_variable([int(self.image_size/2)*int(self.image_size/2)*n_filters, n_hidden])
         b_fc1 = bias_variable([n_hidden])
         h_pool1_flat = tf.reshape(h_pool1, [-1, int(self.image_size/2)*int(self.image_size/2)*n_filters])
