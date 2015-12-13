@@ -40,21 +40,16 @@ if __name__=="__main__":
 
 
     learner.return_function( theano.function(
-        inputs=[screen],
+        inputs=[x],
         outputs=T.argmax(learner.output),
-        givens={
-            x: screen
-        }
+
     )
     )
     train_model = theano.function(
-        inputs=[screen,action],
+        inputs=[x,y],
         outputs=cost,
         updates=updates,
-        givens={
-            x: screen,
-            y: action
-        }
+
     )
 
     for i in range(1000):
