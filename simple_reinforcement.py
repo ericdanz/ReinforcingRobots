@@ -28,8 +28,8 @@ if __name__=="__main__":
     learning_rate = 1e-4
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
-    epsilon_decay = 0.01
-    display_steps = 40
+    epsilon_decay = 0.05
+    display_steps = 100
     sim = Simulator(image_size,10)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
@@ -54,8 +54,13 @@ if __name__=="__main__":
             grads_and_vars = optimizer.compute_gradients(learner.single_action_cost)
             train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
 
+            loss_summary = tf.scalar_summary("cost", learner.single_action_cost)
+            #visualize those first level filters
+            filter_summary = tf.image_summary("filters",learner.first_level_filters,max_images=6)
+
             saver = tf.train.Saver(tf.all_variables())
             sess.run(tf.initialize_all_variables())
+            summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
 
             def train_step(x_batch, y_batch):
                 """
@@ -66,9 +71,12 @@ if __name__=="__main__":
                   learner.y: y_batch,
                   learner.dropout_keep_prob: 0.7
                 }
-                _, step,  loss, test_diff = sess.run(
-                    [train_op, global_step,  learner.single_action_cost, learner.test_diff],
+                _, step,  loss, test_diff,loss_summ,filter_summ = sess.run(
+                    [train_op, global_step,  learner.single_action_cost, learner.test_diff,loss_summary,filter_summary],
                     feed_dict)
+                summary_writer.add_summary(loss_summ, step)
+                if step % 50 == 0:
+                    summary_writer.add_summary(filter_summ, step)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
                 # print("{}".format(test_diff))
@@ -81,10 +89,10 @@ if __name__=="__main__":
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
                 actions = numpy.zeros((batch_size,4),dtype=numpy.float32)
                 for j in range(20):
-                    #grab random sets from the training images
-                    states = random.sample(state_list,batch_size)
+                    #grab random batches from the training images
+                    random_states = random.sample(state_list,batch_size)
                     index = 0
-                    for state in states:
+                    for state in random_states:
                         screens[index,:,:,:] = state[0][0]
                         actions[index,state[0][2]] = float(state[0][1])
                         index += 1
@@ -94,6 +102,7 @@ if __name__=="__main__":
                 current_step = tf.train.global_step(sess, global_step)
 
                 if current_step % display_steps == 0:
+
                     #do a test run
                     sim.reset(sim.image_size,10)
                     #get an average game length, as proxy for learnin'

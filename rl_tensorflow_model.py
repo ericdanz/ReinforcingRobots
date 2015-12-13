@@ -37,6 +37,11 @@ class ActionLearner(object):
 
         W_fc2 = weight_variable([n_hidden, n_out])
         b_fc2 = bias_variable([n_out])
+
+        # L2 regularization for the fully connected parameters.
+        regularizers = (tf.nn.l2_loss(W_fc1) + tf.nn.l2_loss(b_fc1) +
+            tf.nn.l2_loss(W_fc2) + tf.nn.l2_loss(b_fc2))
+
         self.output=tf.matmul(h_fc1_drop, W_fc2) + b_fc2
         self.predictions = tf.argmax(self.output, 1)
 
@@ -56,9 +61,12 @@ class ActionLearner(object):
 
 
         self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2))
+        #add l2 penalty
+        self.single_action_cost += regularizers*5e-4
         correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
         self.number_of_actions = n_out
+        self.first_level_filters = tf.transpose(tf.identity(W_conv1),perm=[3,0,1,2])
 
     def set_sess(self,session):
         self.sess = session
