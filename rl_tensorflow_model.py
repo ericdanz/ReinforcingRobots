@@ -44,7 +44,7 @@ class ActionLearner(object):
         #only those scores should be compared with the predicted scores,
         #and the difference between the y and output matrix should be 0
         #everywhere else
-        self.y_2 = tf.identity(self.y) + 1e-6
+        self.y_2 = tf.identity(self.y) + 1e-6 #this copies y, and adds a small constant for numeric stability
         self.y_2 = self.y_2 / self.y_2 #should be only ones
         self.y_2 = self.y_2 * self.output #should only be the scores at the y actions
         self.output_2 = tf.identity(self.output)

@@ -72,7 +72,7 @@ if __name__=="__main__":
                     [train_op, global_step,  learner.single_action_cost, learner.accuracy],
                     feed_dict)
                 time_str = datetime.datetime.now().isoformat()
-                print("{}: step {}, loss {}, acc {}".format(time_str, step, loss, accuracy))
+                print("{}: step {}, loss {}".format(time_str, step, loss))
 
             for i in range(1000):
                 current_epsilon = epsilon - epsilon_decay*i
