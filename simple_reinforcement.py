@@ -47,7 +47,11 @@ if __name__=="__main__":
 
             global_step = tf.Variable(0, name="global_step", trainable=False)
             optimizer = tf.train.AdamOptimizer(1e-4)
-            with tf.device('/gpu:{}'.format(gpu_flag)):
+            if gpu_flag > -1:
+                device_string = '/gpu:{}'.format(gpu_flag)
+            else:
+                device_string = "/cpu:0"
+            with tf.device(device_string):
                 with tf.name_scope('gpu') as scope:
                     grads_and_vars = optimizer.compute_gradients(learner.single_action_cost)
                     train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
@@ -69,7 +73,7 @@ if __name__=="__main__":
                     feed_dict)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}, acc {}".format(time_str, step, loss, accuracy))
-            
+
             for i in range(1000):
                 current_epsilon = epsilon - epsilon_decay*i
                 #create a batch of states

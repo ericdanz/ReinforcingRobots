@@ -19,8 +19,8 @@ def bias_variable(shape):
 class ActionLearner(object):
     def __init__(self,image_size, n_filters, n_hidden, n_out):
         self.image_size = image_size
-        self.x = tf.placeholder("float", shape=[None, self.image_size,self.image_size,3])
-        self.y = tf.placeholder("float", shape=[None, n_out])
+        self.x = tf.placeholder("float", shape=[None, self.image_size,self.image_size,3],name='input_x')
+        self.y = tf.placeholder("float", shape=[None, n_out],name='input_y')
         self.dropout_keep_prob = tf.placeholder(tf.float32)
 
         W_conv1 = weight_variable([5, 5, 3, n_filters])
@@ -38,11 +38,20 @@ class ActionLearner(object):
         b_fc2 = bias_variable([n_out])
         self.output=tf.matmul(h_fc1_drop, W_fc2) + b_fc2
         self.predictions = tf.argmax(self.output, 1)
-        # idx = numpy.nonzero(self.y)
-        # old_y = tf.identity(self.y[idx])
-        # self.y = tf.identity(self.output)
-        # self.y[idx] = old_y
-        self.single_action_cost = tf.reduce_mean(tf.pow((self.output - self.y),2))
+
+        #attempt to figure out the correct way to do the loss
+        #the y matrix is sparse, with only the actions taken having scores
+        #only those scores should be compared with the predicted scores,
+        #and the difference between the y and output matrix should be 0
+        #everywhere else
+        self.y_2 = tf.identity(self.y) + 1e-6
+        self.y_2 = self.y_2 / self.y_2 #should be only ones
+        self.y_2 = self.y_2 * self.output #should only be the scores at the y actions
+        self.output_2 = tf.identity(self.output)
+        self.output_2 = self.output_2 - self.y_2 #should now have 0s at the nonzero y
+        self.output_2 = self.output_2 + self.y #should now have y values at the actions taken, output values everywhere else
+
+        self.single_action_cost = tf.reduce_mean(tf.pow((self.output - self.output_2),2))
         correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
         self.number_of_actions = n_out
@@ -61,4 +70,4 @@ class ActionLearner(object):
             [self.predictions],
             feed_dict)
 
-        return action
+        return int(action[0])
