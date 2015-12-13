@@ -28,8 +28,8 @@ if __name__=="__main__":
     learning_rate = 1e-4
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
-    epsilon_decay = 0.005
-    display_steps = 20
+    epsilon_decay = 0.01
+    display_steps = 40
     sim = Simulator(image_size,10)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
@@ -80,14 +80,17 @@ if __name__=="__main__":
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
                 actions = numpy.zeros((batch_size,4),dtype=numpy.float32)
-                states = random.sample(state_list,batch_size)
-                index = 0
-                for state in states:
-                    screens[index,:,:,:] = state[0][0]
-                    actions[index,state[0][2]] = float(state[0][1])
-                    index += 1
+                for j in range(10):
+                    #grab random sets from the training images
+                    states = random.sample(state_list,batch_size)
+                    index = 0
+                    for state in states:
+                        screens[index,:,:,:] = state[0][0]
+                        actions[index,state[0][2]] = float(state[0][1])
+                        index += 1
 
-                train_step(screens,actions)
+                    train_step(screens,actions)
+
                 current_step = tf.train.global_step(sess, global_step)
 
                 if current_step % display_steps == 0:
