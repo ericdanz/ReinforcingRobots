@@ -68,11 +68,12 @@ if __name__=="__main__":
                   learner.y: y_batch,
                   learner.dropout_keep_prob: 0.5
                 }
-                _, step,  loss, accuracy = sess.run(
-                    [train_op, global_step,  learner.single_action_cost, learner.accuracy],
+                _, step,  loss, test_diff = sess.run(
+                    [train_op, global_step,  learner.single_action_cost, learner.test_diff],
                     feed_dict)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
+                # print("{}".format(test_diff))
 
             for i in range(1000):
                 current_epsilon = epsilon - epsilon_decay*i
@@ -87,7 +88,6 @@ if __name__=="__main__":
                     screens[index,:,:,:] = state[0][0]
                     actions[index,state[0][2]] = float(state[0][1])
                     index += 1
-                print(screens.shape,actions.shape)
 
                 train_step(screens,actions)
                 current_step = tf.train.global_step(sess, global_step)
@@ -97,6 +97,5 @@ if __name__=="__main__":
                     sim.reset(sim.image_size,10)
                     display_state_list = make_one_set(sim,learner,0,number_of_steps=10)
                     for state in display_state_list:
-                        print(state[0][0].shape)
-                        cv2.imshow('sim',state[0][0])
+                        cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))
                         cv2.waitKey(500)
