@@ -4,8 +4,9 @@ Reinforcement learning in simulation.
 Requires Tensorflow, numpy, and opencv
 
 Run with the command
+```
 python simple_reinforcement.py
-
+```
 #Optional Commands
 -i to change simulator screen size
 --gpu to use a certain number gpu
