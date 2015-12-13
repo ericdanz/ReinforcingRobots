@@ -21,7 +21,7 @@ class ActionLearner(object):
         self.image_size = image_size
         self.x = tf.placeholder("float", shape=[None, self.image_size,self.image_size,3],name='input_x')
         self.y = tf.placeholder("float", shape=[None, n_out],name='input_y')
-        self.dropout_keep_prob = tf.placeholder(tf.float32)
+        self.dropout_keep_prob = tf.placeholder(tf.float32,name='dropout_keep_prob')
 
         W_conv1 = weight_variable([5, 5, 3, n_filters])
         b_conv1 = bias_variable([n_filters])
