@@ -7,7 +7,6 @@ import tensorflow as tf
 import datetime
 import cv2
 import getopt,sys
-from PIL import Image
 import time
 
 if __name__=="__main__":
