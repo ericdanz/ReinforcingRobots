@@ -7,6 +7,8 @@ import tensorflow as tf
 import datetime
 import cv2
 import getopt,sys
+from PIL import Image
+import time
 
 if __name__=="__main__":
     optlist, args = getopt.getopt(sys.argv[1:],'i')
@@ -29,13 +31,13 @@ if __name__=="__main__":
     L2_reg = 0.0001
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
-    epsilon_decay = 0.001
+    epsilon_decay = 0.005
     display_steps = 20
     sim = Simulator(image_size,10)
     with tf.Graph().as_default():
         sess = tf.Session(config=tf.ConfigProto(
             allow_soft_placement=True,
-            log_device_placement=True))
+            log_device_placement=False))
         with sess.as_default():
             learner = ActionLearner(
                 image_size=sim.image_size,
@@ -98,4 +100,5 @@ if __name__=="__main__":
                     display_state_list = make_one_set(sim,learner,0,number_of_steps=10)
                     for state in display_state_list:
                         cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))
-                        cv2.waitKey(500)
+                        cv2.waitKey(1000)
+                    cv2.destroyAllWindows()
