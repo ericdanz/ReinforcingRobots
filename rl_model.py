@@ -153,11 +153,22 @@ class ActionLearner(object):
     def single_action_cost(self, y):
         #only get the cost for the nonzero y
         index = numpy.nonzero(y)
+        # true_cost = T.scalar()
         true_cost = y[index]
+        true_cost = true_cost.copy()
         y = self.output.copy()
-        y[index] = true_cost
+        # # y[index] = true_cost
+        T.set_subtensor(y[index], true_cost)
+        # a = T.vector()
+        # b = T.vector()
+        # return_cost =(a- b)**2
+        # cost_func = theano.function([a,b],return_cost)
+        # T.set_subtensor(y[index], self.output[index])
         #returns the euc sq error
-        return (y - self.output)**2
+        return T.mean((y-self.output)**2)
 
-    def return_action(self):
-        return self.output
+    def return_function(self,theano_func):
+        self.theano_func = theano_func
+
+    def return_action(self,input_variable):
+        return self.theano_func(input_variable)

@@ -3,7 +3,6 @@ import cv2
 from simulation_simulator import Simulator
 
 
-
 def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_only=False):
     #initialize something to hold the games
     #assume epsilon decay happens outside this function
@@ -15,7 +14,6 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
             for state in state_list:
                 game_list.append(state)
     return game_list
-
 
 
 def make_one_set(simulator,actor,epsilon,number_of_steps):
@@ -63,7 +61,6 @@ class FakeActor:
 
     def return_action(self,simulator_screen):
         return numpy.random.randint(self.number_of_actions)
-
 
 
 if __name__ == "__main__":

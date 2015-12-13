@@ -5,6 +5,7 @@ import numpy
 from simulation_simulator import Simulator
 from make_states import make_states
 
+
 if __name__=="__main__":
     rng = numpy.random.RandomState(1234)
     learning_rate = 0.01
@@ -15,6 +16,8 @@ if __name__=="__main__":
     sim = Simulator(128,10)
     x = T.tensor4('x')
     y = T.ivector('y')
+    screen = T.tensor4('screen')
+    action = T.vector()
 
     learner = ActionLearner(
         rng=rng,
@@ -29,26 +32,28 @@ if __name__=="__main__":
         + L2_reg * learner.L2_sqr
     )
     gparams = [T.grad(cost, param) for param in learner.params]
+
     updates = [
         (param, param - learning_rate * gparam)
         for param, gparam in zip(learner.params, gparams)
     ]
 
 
-    actor.return_action = theano.function(
+    learner.return_function( theano.function(
         inputs=[screen],
-        outputs=learner.return_action(),
+        outputs=T.argmax(learner.output),
         givens={
             x: screen
         }
     )
+    )
     train_model = theano.function(
-        inputs=[state],
+        inputs=[screen,action],
         outputs=cost,
         updates=updates,
         givens={
-            x: state[0],
-            y: state[1]
+            x: screen,
+            y: action
         }
     )
 
