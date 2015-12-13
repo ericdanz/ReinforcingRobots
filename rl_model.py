@@ -111,11 +111,11 @@ class ActionLearner(object):
 
         #first layer convolutional
         #condense images to 64 x 64
-
+        # layer1_input = input.reshape((batch_size, 3, 64, 64))
         self.convLayer1 = LeNetConvPoolLayer(
         rng=rng,
         input=input,
-        image_shape=(batch_size, 64, 64, 3),
+        image_shape=(batch_size,3, 64, 64),
         filter_shape=(n_filters, 3, 7, 7),
         poolsize=(2, 2)
         )
@@ -166,7 +166,7 @@ class ActionLearner(object):
         # cost_func = theano.function([a,b],return_cost)
         # T.set_subtensor(y[index], self.output[index])
         #returns the euc sq error
-        return T.mean((y[index]-self.output[index,:])**2)
+        return T.mean((y-self.output)**2)
 
     def return_function(self,theano_func):
         self.theano_func = theano_func
