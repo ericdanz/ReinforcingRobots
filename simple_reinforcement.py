@@ -28,7 +28,7 @@ if __name__=="__main__":
     learning_rate = 1e-4
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
-    epsilon_decay = 0.05
+    epsilon_decay = 0.1
     display_steps = 100
     sim = Simulator(image_size,10)
     if gpu_flag > -1:
@@ -69,7 +69,7 @@ if __name__=="__main__":
                 feed_dict = {
                   learner.x: x_batch,
                   learner.y: y_batch,
-                  learner.dropout_keep_prob: 0.7
+                  learner.dropout_keep_prob: 0.5
                 }
                 _, step,  loss, test_diff,loss_summ,filter_summ = sess.run(
                     [train_op, global_step,  learner.single_action_cost, learner.test_diff,loss_summary,filter_summary],
@@ -80,15 +80,15 @@ if __name__=="__main__":
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
                 # print("{}".format(test_diff))
-
             for i in range(1000):
                 current_epsilon = epsilon - epsilon_decay*i
+
                 #create a batch of states
                 state_list = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games)
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
                 actions = numpy.zeros((batch_size,4),dtype=numpy.float32)
-                for j in range(20):
+                for j in range(10):
                     #grab random batches from the training images
                     random_states = random.sample(state_list,batch_size)
                     index = 0
@@ -96,10 +96,11 @@ if __name__=="__main__":
                         screens[index,:,:,:] = state[0][0]
                         actions[index,state[0][2]] = float(state[0][1])
                         index += 1
-
+                    screens = screens - numpy.mean(numpy.mean(screens,axis=0),axis=0)
                     train_step(screens,actions)
 
                 current_step = tf.train.global_step(sess, global_step)
+
 
                 if current_step % display_steps == 0:
 
@@ -111,6 +112,9 @@ if __name__=="__main__":
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=10)
                         game_lengths.append(len(display_state_list))
                     print("The average game length (lower is better, and 10 is the max): {}".format(numpy.mean(game_lengths)))
+                    game_length_summary = tf.scalar_summary("game_length",numpy.mean(game_lengths))
+                    game_length_summ = sess.run(game_length_summary)
+                    summary_writer.add_summary(game_length_summ, current_step)
                     #show the last one
                     for state in display_state_list:
                         cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))

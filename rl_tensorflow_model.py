@@ -23,6 +23,8 @@ class ActionLearner(object):
         self.y = tf.placeholder("float", shape=[None, n_out],name='input_y')
         self.dropout_keep_prob = tf.placeholder(tf.float32,name='dropout_keep_prob')
 
+
+
         W_conv1 = weight_variable([5, 5, 3, n_filters])
         b_conv1 = bias_variable([n_filters])
         h_conv1 = tf.nn.relu(conv2d(self.x, W_conv1) + b_conv1)
@@ -38,8 +40,9 @@ class ActionLearner(object):
         W_fc2 = weight_variable([n_hidden, n_out])
         b_fc2 = bias_variable([n_out])
 
-        # L2 regularization for the fully connected parameters.
-        regularizers = (tf.nn.l2_loss(W_fc1) + tf.nn.l2_loss(b_fc1) +
+        # L2 regularization for all parameters.
+        regularizers = (tf.nn.l2_loss(W_conv1) + tf.nn.l2_loss(b_conv1) +
+            tf.nn.l2_loss(W_fc1) + tf.nn.l2_loss(b_fc1) +
             tf.nn.l2_loss(W_fc2) + tf.nn.l2_loss(b_fc2))
 
         self.output=tf.matmul(h_fc1_drop, W_fc2) + b_fc2
@@ -52,8 +55,8 @@ class ActionLearner(object):
         #everywhere else
         y_2 = tf.identity(self.y)  #this copies y
         y_2 = y_2 / (y_2 + 1e-8) #should be only ones
-        # y_2_mask = tf.to_int64(tf.identity(y_2))
-        self.y_2 =  y_2* self.output #should only be the scores at the y actions
+        y_2 =  y_2* self.output #should only be the scores at the y actions
+        # y_2[tf.where(self.y == 0)] = tf.identity(self.output[tf.where(self.y == 0)])
         output_2 = tf.identity(self.output)
         output_2 = output_2 - y_2 #should now have 0s at the nonzero y
         output_2 = output_2 + self.y #should now have y values at the actions taken, output values everywhere else
@@ -62,7 +65,7 @@ class ActionLearner(object):
 
         self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2))
         #add l2 penalty
-        self.single_action_cost += regularizers*5e-4
+        self.single_action_cost += regularizers*2e-4
         correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
         self.number_of_actions = n_out

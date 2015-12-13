@@ -11,8 +11,8 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
         simulator.reset(simulator.image_size,10)
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         if (len(state_list) < number_of_steps) or (not winners_only):
-            for state in state_list:
-                game_list.append(state)
+            game_list = game_list + state_list
+            
     return game_list
 
 
