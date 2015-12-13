@@ -13,6 +13,7 @@ if __name__=="__main__":
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
     epsilon_decay = 0.001
+    display_steps = 50
     sim = Simulator(64,10)
     with tf.Graph().as_default():
         sess = tf.Session()
@@ -22,6 +23,7 @@ if __name__=="__main__":
                 n_hidden=1024,
                 n_out=4
                 )
+            learner.set_sess(sess)
 
             global_step = tf.Variable(0, name="global_step", trainable=False)
             optimizer = tf.train.AdamOptimizer(1e-4)
@@ -44,7 +46,6 @@ if __name__=="__main__":
                     [train_op, global_step,  learner.single_action_cost, learner.accuracy],
                     feed_dict)
                 time_str = datetime.datetime.now().isoformat()
-                print("y {}".format(y_batch))
                 print("{}: step {}, loss {}, acc {}".format(time_str, step, loss, accuracy))
             def test_step(x_batch, y_batch):
                 """
@@ -78,3 +79,12 @@ if __name__=="__main__":
                 print(screens.shape,actions.shape)
 
                 train_step(screens,actions)
+                current_step = tf.train.global_step(sess, global_step)
+
+                if current_step % display_steps == 50:
+                    #do a test run
+                    sim.reset(64,10)
+                    display_state_list = make_one_set(sim,learner,0,number_of_steps=10)
+                    for state in display_state_list:
+                        cv2.imshow('sim',state[0])
+                        cv2.waitKey(1000)

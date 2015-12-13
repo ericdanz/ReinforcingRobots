@@ -47,5 +47,18 @@ class ActionLearner(object):
         self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
         self.number_of_actions = n_out
 
+    def set_sess(self,session):
+        self.sess = session
+
     def return_action(self,screen):
-        return 0
+        input_screen = screen.view()
+        input_screen.shape = (1,64,64,3)
+        feed_dict = {
+          self.x: input_screen,
+          self.dropout_keep_prob: 1.0
+          }
+        action  = self.sess.run(
+            [self.predictions],
+            feed_dict)
+
+        return action
