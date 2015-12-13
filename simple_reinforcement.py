@@ -13,7 +13,7 @@ if __name__=="__main__":
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
     epsilon_decay = 0.001
-    sim = Simulator(128,10)
+    sim = Simulator(64,10)
     x = T.tensor4('x')
     y = T.ivector('y')
     # screen = T.tensor4('screen')
@@ -55,5 +55,13 @@ if __name__=="__main__":
         #create a batch of states
         state_list = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=100)
         #create a random selection of this state list for training
+        screens = numpy.zeros((50,sim.image_size,sim.image_size,3))
+        actions = numpy.zeros(50,dtype=numpy.int32)
         states = random.sample(state_list,50)
-        exit(0)
+        index = 0
+        for state in states:
+            screens[index,:,:,:] = state[0][0]
+            actions[index] = int(state[0][1])
+            index += 1
+        batch_cost = train_model(screens,actions)
+        print(batch_cost)

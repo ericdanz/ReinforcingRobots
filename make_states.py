@@ -8,7 +8,7 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
     #assume epsilon decay happens outside this function
     game_list = []
     for i in range(number_of_games):
-        simulator.reset(64,10)
+        simulator.reset(simulator.image_size,10)
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         if (len(state_list) < number_of_steps) or (not winners_only):
             for state in state_list:
