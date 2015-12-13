@@ -11,4 +11,4 @@ python simple_reinforcement.py
 -i to change simulator screen size <br>
 --gpu to use a certain number gpu <br>
 -b or --batch_size to change the batch size in training <br>
---number_of_games to change the number of games played in each update (the larger the number, the more diverse)
+--number_of_games to change the number of games played in each update 
