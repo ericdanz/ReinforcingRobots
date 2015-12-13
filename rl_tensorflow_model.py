@@ -17,9 +17,9 @@ def bias_variable(shape):
   return tf.Variable(initial)
 
 class ActionLearner(object):
-    def __init__(self, n_filters, n_hidden, n_out):
-
-        self.x = tf.placeholder("float", shape=[None, 64,64,3])
+    def __init__(self,image_size, n_filters, n_hidden, n_out):
+        self.image_size = image_size
+        self.x = tf.placeholder("float", shape=[None, self.image_size,self.image_size,3])
         self.y = tf.placeholder("float", shape=[None, n_out])
         self.dropout_keep_prob = tf.placeholder(tf.float32)
 
@@ -28,9 +28,9 @@ class ActionLearner(object):
         h_conv1 = tf.nn.relu(conv2d(self.x, W_conv1) + b_conv1)
         h_pool1 = max_pool_2x2(h_conv1)
 
-        W_fc1 = weight_variable([32*32*n_filters, n_hidden])
+        W_fc1 = weight_variable([int(self.image_size/2)*int(self.image_size/2)*n_filters, n_hidden])
         b_fc1 = bias_variable([n_hidden])
-        h_pool1_flat = tf.reshape(h_pool1, [-1, 32*32*n_filters])
+        h_pool1_flat = tf.reshape(h_pool1, [-1, int(self.image_size/2)*int(self.image_size/2)*n_filters])
         h_fc1 = tf.nn.relu(tf.matmul(h_pool1_flat, W_fc1) + b_fc1)
         h_fc1_drop = tf.nn.dropout(h_fc1, self.dropout_keep_prob)
 
@@ -52,7 +52,7 @@ class ActionLearner(object):
 
     def return_action(self,screen):
         input_screen = screen.view()
-        input_screen.shape = (1,64,64,3)
+        input_screen.shape = (1,self.image_size,self.image_size,3)
         feed_dict = {
           self.x: input_screen,
           self.dropout_keep_prob: 1.0
