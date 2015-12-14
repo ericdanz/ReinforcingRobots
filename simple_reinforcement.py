@@ -6,24 +6,23 @@ import random
 import tensorflow as tf
 import datetime
 import cv2
-import getopt,sys
+import getopt,sys,argparse
 import time
 
 if __name__=="__main__":
-    optlist, args = getopt.getopt(sys.argv[1:],'i')
-    image_size = 64
-    number_of_games = 100
-    batch_size = 50
-    gpu_flag = -1
-    for n,(o,a) in enumerate(optlist):
-        if o in ['-i','--image_size']:
-            image_size = int(args[n])
-        if o in ['-b','--batch_size']:
-            batch_size = int(args[n])
-        if o in ['--number_of_games']:
-            number_of_games = int(args[n])
-        if o in ['-g','--gpu']:
-            gpu_flag = int(args[n])
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i","--image_size",help="size of simulation screen",default=64,type=int)
+    parser.add_argument("-b","--batch_size",help="batch size for training",default=64,type=int)
+    parser.add_argument("-g","--gpu",help="which gpu to use (-1 for cpu)",default=-1,type=int)
+    parser.add_argument("--number_of_games",help="how many games to simulate per training run",default=100,type=int)
+
+    args = parser.parse_args()
+
+    image_size = args.image_size
+    number_of_games = args.number_of_games
+    batch_size = args.batch_size
+    gpu_flag = args.gpu
+    print(image_size,batch_size)
 
     learning_rate = 1e-4
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
