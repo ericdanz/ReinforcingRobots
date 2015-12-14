@@ -17,6 +17,11 @@ if __name__=="__main__":
     parser.add_argument("--number_of_games",help="how many games to simulate per training run",default=100,type=int)
     parser.add_argument("--restore",help="to restore from the saved folder",default="No",type=str)
     parser.add_argument("--save_folder",help="where to save the session variables",default="/tmp/logs/",type=str)
+    parser.add_argument("--learning_rate",help="how fast to learn",default=1e-4,type=int)
+    parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.01,type=float)
+    parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
+    parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
+    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=1024,type=int)
 
     args = parser.parse_args()
 
@@ -25,11 +30,13 @@ if __name__=="__main__":
     batch_size = args.batch_size
     gpu_flag = args.gpu
 
-    learning_rate = 2e-4
+    learning_rate = args.learning_rate
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
+    #initially, you want to use random actions - but over time as the actor learns,
+    #the actor's actions will be better
     epsilon = 1
-    epsilon_decay = 0.04
-    display_steps = 50
+    epsilon_decay = args.epsilon_decay
+    display_steps = args.display_steps
     sim = Simulator(image_size,20)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
@@ -42,8 +49,8 @@ if __name__=="__main__":
         with sess.as_default():
             learner = ActionLearner(
                 image_size=sim.image_size,
-                n_filters=32,
-                n_hidden=1024,
+                n_filters=args.number_of_filters,
+                n_hidden=args.number_of_hidden,
                 n_out=4
                 )
             learner.set_sess(sess)
@@ -83,7 +90,7 @@ if __name__=="__main__":
                 print("{}: step {}, loss {}".format(time_str, step, loss))
                 # print("{}".format(test_diff))
             for i in range(1000):
-                current_epsilon = epsilon - epsilon_decay*i
+                current_epsilon = numpy.max([0.1,epsilon - epsilon_decay*i]) #always have a little randomness
 
                 #create a batch of states
                 state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games,winners_only=True)
@@ -99,7 +106,6 @@ if __name__=="__main__":
                         screens[index,:,:,:] = state[0][0]
                         actions[index,state[0][2]] = float(state[0][1])
                         index += 1
-                    # screens = screens - numpy.mean(numpy.mean(screens,axis=0),axis=0)
                     train_step(screens,actions)
 
                 current_step = tf.train.global_step(sess, global_step)

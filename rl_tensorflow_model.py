@@ -64,8 +64,8 @@ class ActionLearner(object):
                 output_2 = output_2 + self.y #should now have y values at the actions taken, output values everywhere else
                 self.test_diff = self.output-output_2
 
-
-                self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2))
+                self.normal_cost = tf.reduce_mean(tf.pow((self.output - self.y),2)) #this just subtracts the largely 0 y matrix
+                self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2)) #this subtracts a matrix almost identical to self.output
                 #add l2 penalty
                 self.single_action_cost += regularizers*1e-4
                 correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
