@@ -15,6 +15,8 @@ if __name__=="__main__":
     parser.add_argument("-b","--batch_size",help="batch size for training",default=64,type=int)
     parser.add_argument("-g","--gpu",help="which gpu to use (-1 for cpu)",default=-1,type=int)
     parser.add_argument("--number_of_games",help="how many games to simulate per training run",default=100,type=int)
+    parser.add_argument("--restore",help="to restore from the saved folder",default="No",type=str)
+    parser.add_argument("--save_folder",help="where to save the session variables",default="/tmp/logs/",type=str)
 
     args = parser.parse_args()
 
@@ -27,7 +29,7 @@ if __name__=="__main__":
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
     epsilon_decay = 0.04
-    display_steps = 200
+    display_steps = 50
     sim = Simulator(image_size,20)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
@@ -58,7 +60,9 @@ if __name__=="__main__":
 
             saver = tf.train.Saver(tf.all_variables())
             sess.run(tf.initialize_all_variables())
-            summary_writer = tf.train.SummaryWriter('/tmp/logs', sess.graph_def)
+            summary_writer = tf.train.SummaryWriter(args.save_folder, sess.graph_def)
+            if args.restore != "No":
+                saver.restore(sess, args.save_folder+args.restore)
 
             def train_step(x_batch, y_batch):
                 """
@@ -104,7 +108,8 @@ if __name__=="__main__":
                 summary_writer.add_summary(game_length_summ, current_step)
 
                 if current_step % display_steps == 0:
-
+                    #save
+                    saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
                     #do a test run
                     sim.reset(sim.image_size,10)
                     #get an average game length, as proxy for learnin'
