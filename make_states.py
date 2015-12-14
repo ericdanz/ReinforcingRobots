@@ -11,10 +11,14 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
     for i in range(number_of_games):
         simulator.reset(simulator.image_size,10)
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
-        if (len(state_list) < number_of_steps) or (not winners_only):
-            length_list.append(len(state_list))
-            game_list = game_list + state_list
-    print("avg game length {}".format(numpy.mean(length_list)))
+        #tying the mix of wins to epsilon allows a decay in random games, leading towards
+        #more wins as the learning progresses
+        while (len(state_list) == number_of_steps) and (winners_only) and (numpy.random.uniform() > (numpy.min([0,epsilon]) + 0.1) ):
+            state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
+        #if (len(state_list) < number_of_steps): # or (not winners_only) or (numpy.random.uniform() > .8):
+        length_list.append(len(state_list))
+        game_list = game_list + state_list
+    print("The average game length (lower is better, and 10 is the max): {}".format(numpy.mean(length_list)))
     return game_list,numpy.mean(length_list)
 
 

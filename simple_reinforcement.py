@@ -22,14 +22,13 @@ if __name__=="__main__":
     number_of_games = args.number_of_games
     batch_size = args.batch_size
     gpu_flag = args.gpu
-    print(image_size,batch_size)
 
-    learning_rate = 1e-3
+    learning_rate = 2e-4
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
     epsilon_decay = 0.04
     display_steps = 200
-    sim = Simulator(image_size,2)
+    sim = Simulator(image_size,20)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
     else:
@@ -41,7 +40,7 @@ if __name__=="__main__":
         with sess.as_default():
             learner = ActionLearner(
                 image_size=sim.image_size,
-                n_filters=64,
+                n_filters=32,
                 n_hidden=1024,
                 n_out=4
                 )
@@ -83,7 +82,7 @@ if __name__=="__main__":
                 current_epsilon = epsilon - epsilon_decay*i
 
                 #create a batch of states
-                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games)
+                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games,winners_only=True)
 
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
