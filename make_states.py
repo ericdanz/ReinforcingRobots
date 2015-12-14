@@ -7,13 +7,15 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
     #initialize something to hold the games
     #assume epsilon decay happens outside this function
     game_list = []
+    length_list = []
     for i in range(number_of_games):
         simulator.reset(simulator.image_size,10)
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         if (len(state_list) < number_of_steps) or (not winners_only):
+            length_list.append(len(state_list))
             game_list = game_list + state_list
-            
-    return game_list
+    print("avg game length {}".format(numpy.mean(length_list)))
+    return game_list,numpy.mean(length_list)
 
 
 def make_one_set(simulator,actor,epsilon,number_of_steps):

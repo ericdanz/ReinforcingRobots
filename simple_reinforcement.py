@@ -24,12 +24,12 @@ if __name__=="__main__":
     gpu_flag = args.gpu
     print(image_size,batch_size)
 
-    learning_rate = 1e-4
+    learning_rate = 1e-3
     #epsilon is the decision parameter - do you use the actor's actions or do them randomly?
     epsilon = 1
-    epsilon_decay = 0.1
-    display_steps = 100
-    sim = Simulator(image_size,10)
+    epsilon_decay = 0.04
+    display_steps = 200
+    sim = Simulator(image_size,2)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
     else:
@@ -41,7 +41,7 @@ if __name__=="__main__":
         with sess.as_default():
             learner = ActionLearner(
                 image_size=sim.image_size,
-                n_filters=32,
+                n_filters=64,
                 n_hidden=1024,
                 n_out=4
                 )
@@ -83,7 +83,8 @@ if __name__=="__main__":
                 current_epsilon = epsilon - epsilon_decay*i
 
                 #create a batch of states
-                state_list = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games)
+                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games)
+
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
                 actions = numpy.zeros((batch_size,4),dtype=numpy.float32)
@@ -95,11 +96,13 @@ if __name__=="__main__":
                         screens[index,:,:,:] = state[0][0]
                         actions[index,state[0][2]] = float(state[0][1])
                         index += 1
-                    screens = screens - numpy.mean(numpy.mean(screens,axis=0),axis=0)
+                    # screens = screens - numpy.mean(numpy.mean(screens,axis=0),axis=0)
                     train_step(screens,actions)
 
                 current_step = tf.train.global_step(sess, global_step)
-
+                game_length_summary = tf.scalar_summary("game_length",avg_game_lengths)
+                game_length_summ = sess.run(game_length_summary)
+                summary_writer.add_summary(game_length_summ, current_step)
 
                 if current_step % display_steps == 0:
 
@@ -111,9 +114,7 @@ if __name__=="__main__":
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=10)
                         game_lengths.append(len(display_state_list))
                     print("The average game length (lower is better, and 10 is the max): {}".format(numpy.mean(game_lengths)))
-                    game_length_summary = tf.scalar_summary("game_length",numpy.mean(game_lengths))
-                    game_length_summ = sess.run(game_length_summary)
-                    summary_writer.add_summary(game_length_summ, current_step)
+
                     #show the last one
                     for state in display_state_list:
                         cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))

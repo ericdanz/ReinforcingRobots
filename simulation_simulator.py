@@ -32,10 +32,12 @@ class Simulator:
         #draw the bot
         xx, yy = numpy.mgrid[:self.screen.shape[0], :self.screen.shape[1]]
         circle = (xx - self.bot_location[1]) ** 2 + (yy - self.bot_location[0]) ** 2
-        self.screen[:,:,0] += (circle < self.bot_size**2) #numpy.logical_and(circle < (self.bot_size**2 ), 1)
+        self.screen[:,:,0] += (circle < self.bot_size**2)*.5 #numpy.logical_and(circle < (self.bot_size**2 ), 1)
         #self.screen[self.bot_location[0],self.bot_location[1]] = 1
         circle = (xx - self.goal_location[1]) ** 2 + (yy - self.goal_location[0]) ** 2
-        self.screen[:,:,2] += (circle < self.goal_size**2 ) #numpy.logical_and(circle < (self.goal_size**2 ), 1)
+        self.screen[:,:,2] += (circle < self.goal_size**2 )*.5 #numpy.logical_and(circle < (self.goal_size**2 ), 1)
+        self.screen = self.screen - numpy.mean(numpy.mean(self.screen,axis=0),axis=0)
+
 
     def score(self):
         #return the 2 norm
