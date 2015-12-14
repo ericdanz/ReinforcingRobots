@@ -59,7 +59,6 @@ class ActionLearner(object):
                 y_2 = tf.identity(self.y)  #this copies y
                 y_2 = y_2 / (y_2 + 1e-8) #should be only ones
                 y_2 =  y_2* self.output #should only be the scores at the y actions
-                # y_2[tf.where(self.y == 0)] = tf.identity(self.output[tf.where(self.y == 0)])
                 output_2 = tf.identity(self.output)
                 output_2 = output_2 - y_2 #should now have 0s at the nonzero y
                 output_2 = output_2 + self.y #should now have y values at the actions taken, output values everywhere else

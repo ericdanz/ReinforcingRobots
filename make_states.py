@@ -15,7 +15,6 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
         #more wins as the learning progresses
         while (len(state_list) == number_of_steps) and (winners_only) and (numpy.random.uniform() > (numpy.min([0,epsilon]) + 0.1) ):
             state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
-        #if (len(state_list) < number_of_steps): # or (not winners_only) or (numpy.random.uniform() > .8):
         length_list.append(len(state_list))
         game_list = game_list + state_list
     print("The average game length (lower is better, and 10 is the max): {}".format(numpy.mean(length_list)))
@@ -51,7 +50,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps):
             discount_iterator = 0
             discount_factor = 0.1
             for previous_state in reversed(state_list):
-                #this starts at the state before the win
+                #this starts at the win, but doesn't add to the win reward
                 #the reward can be decreased linearly or exponentially
                 #this will do it linearly
                 previous_state[0][1] += reward*(1- (discount_factor*discount_iterator))
