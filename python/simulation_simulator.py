@@ -1,0 +1,94 @@
+import numpy
+import cv2
+
+class Simulator:
+    def __init__(self,image_size,reward):
+        self.reset(image_size,reward)
+
+    def do_action(self,action):
+        #action is an int
+        if action == 0:
+            #go left
+            self.bot_location[1] -= int(self.image_size/6)
+        if action == 1:
+            #go right
+            self.bot_location[1] += int(self.image_size/6)
+        if action == 2:
+            #go up
+            self.bot_location[0] -= int(self.image_size/6)
+        if action == 3:
+            #go down
+            self.bot_location[0] += int(self.image_size/6)
+
+        self.check_max()
+        self.render()
+        if self.did_win():
+            return self.screen,self.reward,True
+        return self.screen,self.score(),None
+
+    def render(self):
+        #blank the screen
+        self.screen = numpy.random.randn(self.screen.shape[0],self.screen.shape[1],self.screen.shape[2])/10
+        #draw the bot
+        xx, yy = numpy.mgrid[:self.screen.shape[0], :self.screen.shape[1]]
+        circle = (xx - self.bot_location[1]) ** 2 + (yy - self.bot_location[0]) ** 2
+        self.screen[:,:,0] += (circle < self.bot_size**2)*2 #make the bot a little circle
+        circle = (xx - self.goal_location[1]) ** 2 + (yy - self.goal_location[0]) ** 2
+        self.screen[:,:,2] += (circle < self.goal_size**2 )*2 #make the goal a little circle
+        self.screen = self.screen - numpy.mean(numpy.mean(self.screen,axis=0),axis=0)
+        self.screen = self.screen / numpy.sqrt(numpy.var(self.screen))
+
+
+    def score(self):
+        #return the 2 norm
+        return 0 # 1 - (numpy.linalg.norm(self.bot_location-self.goal_location)/(numpy.sqrt(self.image_size**2 *2)))
+
+    def reset(self,image_size,reward):
+        self.image_size = image_size
+        self.screen = numpy.random.randn(image_size,image_size,3)/10
+        self.reward = reward
+        self.bot_size = int(image_size / 10)
+        self.goal_size = int(image_size/20)
+        self.bot_location = numpy.random.randint(image_size-self.bot_size,size=(2))
+        self.goal_location= numpy.random.randint(image_size-self.goal_size,size=(2))
+        self.check_max()
+        self.render()
+
+    def did_win(self):
+        #first check if the bot and goal are overlapping
+        blue_plus_red = self.screen[:,:,0] + self.screen[:,:,2]
+        if numpy.max(blue_plus_red) > 12:
+            #there's an overlap!
+            return True
+        return False
+
+    def check_max(self):
+        #check if the bot has gone over the edge
+        self.bot_location[0] = numpy.min([self.bot_location[0],self.image_size - self.bot_size])
+        self.bot_location[0] = numpy.max([self.bot_size,self.bot_location[0]])
+
+        self.bot_location[1] = numpy.min([self.bot_location[1],self.image_size - self.bot_size])
+        self.bot_location[1] = numpy.max([self.bot_size,self.bot_location[1]])
+        #check if the goal has gone over the edge
+        self.goal_location[0] = numpy.min([self.goal_location[0],self.image_size - self.goal_size])
+        self.goal_location[0] = numpy.max([self.goal_size,self.goal_location[0]])
+
+        self.goal_location[1] = numpy.min([self.goal_location[1],self.image_size - self.goal_size])
+        self.goal_location[1] = numpy.max([self.goal_size,self.goal_location[1]])
+
+
+if __name__ == "__main__":
+    sim = Simulator(256,10)
+    cv2.imshow('sim',sim.screen)
+    cv2.waitKey(1000)
+    screen,score,end = sim.do_action(1)
+    screen,score,end = sim.do_action(1)
+    screen,score,end = sim.do_action(1)
+    for i in range(10):
+        action = numpy.random.randint(4)
+        screen,score,end = sim.do_action(action)
+        screen,score,end = sim.do_action(action)
+        screen,score,end = sim.do_action(action)
+        cv2.imshow('sim',screen)
+        print(score)
+        cv2.waitKey(1000)
