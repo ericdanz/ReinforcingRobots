@@ -1,6 +1,6 @@
 from rl_tensorflow_model import ActionLearner
 import numpy
-from simulation_simulator import Simulator
+from simple_scrolling_simulator import Simulator
 from make_states import make_states,make_one_set
 import random
 import tensorflow as tf
@@ -51,7 +51,7 @@ if __name__=="__main__":
                 image_size=sim.image_size,
                 n_filters=args.number_of_filters,
                 n_hidden=args.number_of_hidden,
-                n_out=4
+                n_out=sim.number_of_actions
                 )
             learner.set_sess(sess)
 
@@ -95,11 +95,11 @@ if __name__=="__main__":
 
                 #create a batch of states
                 start_time = time.time()
-                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games,winners_only=True)
+                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games,winners_only=False)
                 print('took {} seconds'.format(time.time() - start_time))
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
-                actions = numpy.zeros((batch_size,4),dtype=numpy.float32)
+                actions = numpy.zeros((batch_size,sim.number_of_actions),dtype=numpy.float32)
                 for j in range(10):
                     #grab random batches from the training images
                     random_states = random.sample(state_list,batch_size)
@@ -124,7 +124,7 @@ if __name__=="__main__":
                     for j in range(20):
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=10,display=True)
                         game_lengths.append(len(display_state_list))
-                    print("The average game length (lower is better, and 10 is the max): {}".format(numpy.mean(game_lengths)))
+                    print("The average game length (higher is better, and 10 is the max): {}".format(numpy.mean(game_lengths)))
 
                     #show the last one
                     # for state in display_state_list:

@@ -17,7 +17,7 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
             state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         length_list.append(len(state_list))
         game_list = game_list + state_list
-    print("The average game length (lower is better, and 10 is the max): {}".format(numpy.mean(length_list)))
+    print("The average game length (higher is better, and 10 is the max): {}".format(numpy.mean(length_list)))
     return game_list,numpy.mean(length_list)
 
 

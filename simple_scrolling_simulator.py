@@ -3,6 +3,7 @@ import cv2
 
 class Simulator:
     def __init__(self,image_size,penalty):
+        self.number_of_actions = 2
         self.reset(image_size,penalty)
 
     def do_action(self,action):
