@@ -1,6 +1,6 @@
 import numpy,copy
 import cv2
-from simulation_simulator import Simulator
+from simple_scrolling_simulator import Simulator
 import time
 
 
@@ -13,7 +13,7 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         #tying the mix of wins to epsilon allows a decay in random games, leading towards
         #more wins as the learning progresses
-        while (len(state_list) == number_of_steps) and (winners_only) and (numpy.random.uniform() > (numpy.min([0,epsilon]) + 0.1) ):
+        while (len(state_list) == number_of_steps) and (winners_only) and (numpy.random.uniform() > (numpy.min([0,epsilon]) + 0.01) ):
             state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         length_list.append(len(state_list))
         game_list = game_list + state_list
@@ -67,8 +67,8 @@ class FakeActor:
 
 
 if __name__ == "__main__":
-    sim = Simulator(64,10)
-    actor = FakeActor(4)
+    sim = Simulator(128,10)
+    actor = FakeActor(2)
     start_time = time.time()
     game_state_list = make_states(sim,actor,1,10,100,winners_only=False)
     print(time.time() - start_time)

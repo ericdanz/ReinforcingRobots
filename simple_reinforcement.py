@@ -37,7 +37,7 @@ if __name__=="__main__":
     epsilon = 1
     epsilon_decay = args.epsilon_decay
     display_steps = args.display_iterations
-    sim = Simulator(image_size,5)
+    sim = Simulator(image_size,20)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
     else:
@@ -95,7 +95,7 @@ if __name__=="__main__":
 
                 #create a batch of states
                 start_time = time.time()
-                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games,winners_only=False)
+                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=10,number_of_games=number_of_games,winners_only=True)
                 print('took {} seconds'.format(time.time() - start_time))
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
