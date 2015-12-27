@@ -100,7 +100,7 @@ if __name__=="__main__":
                 #create a random selection of this state list for training
                 screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
                 actions = numpy.zeros((batch_size,sim.number_of_actions),dtype=numpy.float32)
-                for j in range(10):
+                for j in range(int(len(state_list)/batch_size)):
                     #grab random batches from the training images
                     random_states = random.sample(state_list,batch_size)
                     index = 0
