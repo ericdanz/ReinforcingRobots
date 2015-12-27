@@ -26,7 +26,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
     simulator.reset(simulator.image_size,10)
     for i in range(number_of_steps):
         state = []
-        if numpy.random.uniform() < epsilon:
+        if numpy.random.uniform() < numpy.max([epsilon,0.1]):
             #do a random action
             action = numpy.random.randint(actor.number_of_actions)
         else:
