@@ -89,51 +89,32 @@ if __name__=="__main__":
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
                 # print("{}".format(test_diff))
-            for i in range(1000):
-                current_step = tf.train.global_step(sess, global_step)
-                current_epsilon = numpy.max([0.1,epsilon - epsilon_decay*current_step]) #always have a little randomness
 
-                #create a batch of states
-                start_time = time.time()
-                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=300,number_of_games=number_of_games,winners_only=False)
-                print('took {} seconds'.format(time.time() - start_time))
-                #create a random selection of this state list for training
-                screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
-                actions = numpy.zeros((batch_size,sim.number_of_actions),dtype=numpy.float32)
-                for j in range(int(len(state_list)/batch_size)):
-                    #grab random batches from the training images
-                    random_states = random.sample(state_list,batch_size)
-                    index = 0
-                    for state in random_states:
-                        screens[index,:,:] = state[0][4]
-                        # screens[index,:,:,1] = numpy.reshape(state[0][4],(sim.image_size,sim.image_size))
-                        # screens[index,:,:,2] = numpy.reshape(state[0][4],(sim.image_size,sim.image_size))
-                        actions[index,state[0][2]] = float(state[0][1])
-                        index += 1
-                    train_step(screens,actions)
-                if i % 10 == 0:
-                    #save
-                    saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
+            #just display games
 
-                game_length_summary = tf.scalar_summary("game_length",avg_game_lengths)
-                game_length_summ = sess.run(game_length_summary)
-                summary_writer.add_summary(game_length_summ, current_step)
+            sim.reset(sim.image_size,10)
+            #get an average game length, as proxy for learnin'
+            game_score = []
+            previous_state = numpy.zeros((sim.image_size,sim.image_size,3))
+            previous_state[:,:,0] = numpy.reshape(sim.screen,(sim.image_size,sim.image_size))
+            screen = sim.screen
+            for i in range(100):
+                cv2.imshow('Phong!',screen)
+                key = cv2.waitKey(80)
+                print(key)
+                if key == 63232:
+                    screen,score,points_made,end = sim.do_action(1,side="left")
+                elif key == 63233:
+                    screen,score,points_made,end = sim.do_action(2,side="left")
+                else:
+                    screen,score,points_made,end = sim.do_action(0,side="left")
+                action = learner.return_action(previous_state)
+                screen,score,points_made,end = sim.do_action(action)
+                previous_state[:,:,1:] = numpy.copy(previous_state[:,:,:2])
+                previous_state[:,:,0] = numpy.reshape(screen,(sim.image_size,sim.image_size))
 
-
-                if current_step % display_steps == 0 and current_step != 0:
-                    #save
-                    saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
-                    #do a test run
-                    sim.reset(sim.image_size,10)
-                    #get an average game length, as proxy for learnin'
-                    game_score = []
-                    for j in range(5):
-                        display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
-                        game_score.append(display_state_list[-1][0][1])
-                    print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
-
-                    #show the last one
-                    # for state in display_state_list:
-                        # cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))
-                        # cv2.waitKey(1000)
-                    # cv2.destroyAllWindows()
+                print(score)
+            # for j in range(5):
+            #     display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
+            #     game_score.append(display_state_list[-1][0][1])
+            # print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
