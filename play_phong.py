@@ -98,10 +98,9 @@ if __name__=="__main__":
             previous_state = numpy.zeros((sim.image_size,sim.image_size,3))
             previous_state[:,:,0] = numpy.reshape(sim.screen,(sim.image_size,sim.image_size))
             screen = sim.screen
-            for i in range(100):
+            for i in range(1000):
                 cv2.imshow('Phong!',screen)
-                key = cv2.waitKey(80)
-                print(key)
+                key = cv2.waitKey(8)
                 if key == 63232:
                     screen,score,points_made,end = sim.do_action(1,side="left")
                 elif key == 63233:
