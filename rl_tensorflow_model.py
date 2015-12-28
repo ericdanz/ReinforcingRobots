@@ -19,6 +19,7 @@ def bias_variable(shape):
 class ActionLearner(object):
     def __init__(self,image_size, n_filters, n_hidden, n_out):
         self.image_size = image_size
+        self.display_output = numpy.zeros(n_out)
         with tf.name_scope('model')  as scope:
             self.x = tf.placeholder("float", shape=[None, self.image_size,self.image_size,3],name='input_x')
             self.y = tf.placeholder("float", shape=[None, n_out],name='input_y')

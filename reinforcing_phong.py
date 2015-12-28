@@ -56,7 +56,7 @@ if __name__=="__main__":
             learner.set_sess(sess)
 
             global_step = tf.Variable(0, name="global_step", trainable=False)
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate,beta1=0.8)
+            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
 
             grads_and_vars = optimizer.compute_gradients(learner.single_action_cost) #could also use learner.normal_cost
             train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
