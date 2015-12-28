@@ -116,14 +116,14 @@ if __name__=="__main__":
                 game_length_summ = sess.run(game_length_summary)
                 summary_writer.add_summary(game_length_summ, current_step)
 
-                if current_step % display_steps == 0:
+                if current_step % display_steps == 0 and current_step != 0:
                     #save
                     saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
                     #do a test run
                     sim.reset(sim.image_size,10)
                     #get an average game length, as proxy for learnin'
                     game_score = []
-                    for j in range(20):
+                    for j in range(5):
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
                         game_score.append(display_state_list[-1][0][1])
                     print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
