@@ -78,7 +78,7 @@ if __name__=="__main__":
                 feed_dict = {
                   learner.x: x_batch,
                   learner.y: y_batch,
-                  learner.dropout_keep_prob: 0.5
+                  learner.dropout_keep_prob: 0.7
                 }
                 _, step,  loss, test_diff,loss_summ,filter_summ = sess.run(
                     [train_op, global_step,  learner.single_action_cost, learner.test_diff,loss_summary,filter_summary],
