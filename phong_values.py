@@ -89,52 +89,94 @@ if __name__=="__main__":
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
                 # print("{}".format(test_diff))
-            for i in range(1000):
-                current_step = tf.train.global_step(sess, global_step)
-                current_epsilon = numpy.max([0.1,epsilon - epsilon_decay*current_step]) #always have a little randomness
 
-                #create a batch of states
-                start_time = time.time()
-                state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=300,number_of_games=number_of_games,winners_only=False)
-                print('took {} seconds'.format(time.time() - start_time))
-                #create a random selection of this state list for training
-                screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
-                actions = numpy.zeros((batch_size,sim.number_of_actions),dtype=numpy.float32)
-                for j in range(int(len(state_list)/batch_size)):
-                    #grab random batches from the training images
-                    random_states = random.sample(state_list,batch_size)
-                    index = 0
-                    for state in random_states:
-                        screens[index,:,:] = state[0][4]
-                        # screens[index,:,:,1] = numpy.reshape(state[0][4],(sim.image_size,sim.image_size))
-                        # screens[index,:,:,2] = numpy.reshape(state[0][4],(sim.image_size,sim.image_size))
-                        actions[index,state[0][2]] = float(state[0][1])
-                        index += 1
-                    train_step(screens,actions)
-                if i % 2 == 0:
-                    #save
-                    print(i)
-                    saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
+            def redraw_heatmap(x,y,angle):
+                #convert to radians
+                angle = (angle - 90) *numpy.pi / 180.0
+                #load the screen
+                test_screen =numpy.random.randn(128,128,3)/100
+                #other paddle location
+                other_paddle_location = numpy.random.randint(128-12,size=(2))
+                other_paddle_location[1] = int(128 *.1)
+                test_screen[int(other_paddle_location[0]-12.0/2):int(other_paddle_location[0]+12.0/2),int(other_paddle_location[1]-1):int(other_paddle_location[1]+1),:] = 1
+                #draw the balls
+                yy, xx = numpy.mgrid[:128, :128]
+                circle = (xx - x) ** 2 + (yy - y) ** 2
+                test_screen[:,:,0] += (circle < 3**2)*2 #make the ball a little circle
+                #put the other balls in order behind this ball
+                circle = (xx - x+3*numpy.cos(angle)) ** 2 + (yy - y+3*numpy.sin(angle)) ** 2
+                test_screen[:,:,1] += (circle < 3**2)*2 #make the ball a little circle
+                #put the other balls in order behind this ball
+                circle = (xx - x+6*numpy.cos(angle)) ** 2 + (yy - y+6*numpy.sin(angle)) ** 2
+                test_screen[:,:,2] += (circle < 3**2)*2 #make the ball a little circle
 
-                game_length_summary = tf.scalar_summary("game_length",avg_game_lengths)
-                game_length_summ = sess.run(game_length_summary)
-                summary_writer.add_summary(game_length_summ, current_step)
+                total_action_values = numpy.zeros(10) #these are the overal value of each position
+                for i in range(10):
+                    #move the paddle to the top
+                    #they are 13 pixels high, and start at pixel 5
+                    paddle = [ 5+13*i,18+13*i,114,116]
+                    test_screen[:,113:,:] = -.11
+                    test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],:] = 1
+                    #find all the values of each state for the screen
+                    _ = learner.return_action(test_screen)
+                    action_values = learner.display_output[0]
+                    print(action_values)
+                    #0 is for i
+                    total_action_values[i] += action_values[0]
+                    if i > 0:
+                        total_action_values[i-1] += action_values[1]
+                    if i < 9:
+                        total_action_values[i+1] += action_values[2]
+                    # cv2.imshow('screen',test_screen)
+                    # cv2.waitKey(100)
+                #normalize the values
+                total_action_values[0] /= 2 #the ends only get added to twice
+                total_action_values[9] /= 2
+                total_action_values[1:9] /= 3
+                # print(total_action_values[1:9].shape)
+                print(total_action_values)
+                #make a heatmap of paddles
+                total_action_values -= numpy.min(total_action_values)
+                total_action_values /= numpy.max(total_action_values)
+                test_screen[:,113:,:] = -.11
+                for i in range(10):
+                    paddle = [ 5+13*i,18+13*i,114,116]
+                    #make it a color range
+                    if total_action_values[i] < .33:
+                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],0] = total_action_values[i]
+                    elif total_action_values[i] < .66:
+                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],1] = total_action_values[i]
+                    else:
+                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],2] = total_action_values[i]
+
+                return test_screen
 
 
-                if i % display_steps == 0 and current_step != 0:
-                    #save
-                    saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
-                    #do a test run
-                    sim.reset(sim.image_size,10)
-                    #get an average game length, as proxy for learnin'
-                    game_score = []
-                    for j in range(5):
-                        display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
-                        game_score.append(display_state_list[-1][0][1])
-                    print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
+            #defualt starting point
+            x = 60
+            y = 60
+            angle = 90
+            key = -1
+            test_screen = redraw_heatmap(x,y,angle)
+            while True:
+                if key != -1:
+                    if key == 63232:
+                        y -= 2
+                    elif key == 63233:
+                        y += 2
+                    elif key == 63234:
+                        x -= 2
+                    elif key == 63235:
+                        x += 2
+                    elif key == 113:
+                        angle -= 10
+                    elif key == 101:
+                        angle += 10
 
-                    #show the last one
-                    # for state in display_state_list:
-                        # cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))
-                        # cv2.waitKey(1000)
-                    # cv2.destroyAllWindows()
+                    #move x y and angle
+                    test_screen = redraw_heatmap(x,y,angle) #angle in degrees
+
+                cv2.imshow('screen',cv2.resize(test_screen,(0,0),fx=2,fy=2 ))
+                key = cv2.waitKey(1000)
+                print(key)
+            exit(0)

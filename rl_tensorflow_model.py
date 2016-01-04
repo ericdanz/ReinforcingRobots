@@ -81,7 +81,7 @@ class ActionLearner(object):
                 self.normal_cost = tf.reduce_mean(tf.pow((self.output - self.y),2)) #this just subtracts the largely 0 y matrix
                 self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2)) #this subtracts a matrix almost identical to self.output
                 #add l2 penalty
-                self.single_action_cost += regularizers*1e-4
+                self.single_action_cost += regularizers*2e-4
                 correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
                 self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
                 self.number_of_actions = n_out

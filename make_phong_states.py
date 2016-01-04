@@ -29,7 +29,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
     left_state_list = []
     previous_state = numpy.zeros((simulator.image_size,simulator.image_size,3))
     last_score = 0
-    simulator.reset(10)
+    simulator.reset()
     previous_state[:,:,0] = numpy.reshape(simulator.screen,(simulator.image_size,simulator.image_size))
     #one set is one score ?
     for i in range(number_of_steps):
@@ -124,5 +124,6 @@ if __name__ == "__main__":
     for state_list in game_state_list:
         for state in state_list:
             print(state[0][1:4],numpy.mean(state[0][4]))
-            cv2.imshow('Phong!',state[0][4])
+            cv2.imshow('Phong!',cv2.resize(state[0][4],(0,0),fx=2,fy=2))
+            numpy.save('phong_screen',state[0][4])
             cv2.waitKey(400)

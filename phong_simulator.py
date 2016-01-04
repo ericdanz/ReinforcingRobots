@@ -38,7 +38,7 @@ class Simulator:
 
             #self.render() #these only happen when the 'right' side moves
             #self.did_score()
-            return None,None,None,False #self.screen,self.return_score()
+            return None,None,None,0 #self.screen,self.return_score()
 
     def render(self):
         #blank the screen
@@ -62,10 +62,11 @@ class Simulator:
         #return the 2 norm
         return self.score
 
-    def reset(self,reward,score=0,points_made=0):
+    def reset(self,reward=None,score=0,points_made=0):
         self.image_size = 128
         self.screen = numpy.random.randn(self.image_size,self.image_size,1)/100
-        self.reward = reward
+        if reward != None:
+            self.reward = reward
         self.score = score
         self.points_made = points_made
         self.paddle_size = int(self.image_size/10)
@@ -74,9 +75,9 @@ class Simulator:
         self.paddle_location[1] = int(self.image_size *.9)
         self.other_paddle_location = numpy.random.randint(self.image_size-self.paddle_size,size=(2))
         self.other_paddle_location[1] = int(self.image_size *.1)
-        self.ball_location = numpy.random.uniform(1,size=(2))*(self.image_size-self.ball_size*4)
+        self.ball_location = numpy.random.uniform(size=(2))*(self.image_size)
         self.ball_location[1] = self.image_size / 2
-        self.ball_direction = numpy.random.uniform(size=2)*2
+        self.ball_direction = numpy.random.uniform(size=2)*2.0
         self.ball_direction -= 1
         # print(self.ball_direction)
         if numpy.abs(self.ball_direction[0]) < .3:
@@ -147,7 +148,7 @@ class Simulator:
             self.ball_direction[1] = (1.245  - numpy.abs(self.ball_direction[0]))*(self.ball_direction[1]/numpy.abs(self.ball_direction[1]))
 
     def ball_side(self):
-        if self.ball_location[1] >= self.image_size /2:
+        if self.ball_location[1] <= self.image_size /2:
             return "left"
         else:
             return "right"
