@@ -109,8 +109,12 @@ if __name__=="__main__":
                 #put the other balls in order behind this ball
                 circle = (xx - x+6*numpy.cos(angle)) ** 2 + (yy - y+6*numpy.sin(angle)) ** 2
                 test_screen[:,:,2] += (circle < 3**2)*2 #make the ball a little circle
+                #do three columns, for each type of action
 
-                total_action_values = numpy.zeros(10) #these are the overal value of each position
+                noop_action_values = numpy.zeros(10)
+                down_action_values = numpy.zeros(10)
+                up_action_values = numpy.zeros(10)
+                total_action_values = numpy.zeros(10) #these are the overall value of each position
                 for i in range(10):
                     #move the paddle to the top
                     #they are 13 pixels high, and start at pixel 5
@@ -123,36 +127,74 @@ if __name__=="__main__":
                     print(action_values)
                     #0 is for i
                     total_action_values[i] += action_values[0]
+                    noop_action_values[i] += action_values[0]
                     if i > 0:
                         total_action_values[i-1] += action_values[1]
+                        up_action_values[i-1] += action_values[1]
                     if i < 9:
                         total_action_values[i+1] += action_values[2]
+                        down_action_values[i+1] += action_values[2]
                     # cv2.imshow('screen',test_screen)
                     # cv2.waitKey(100)
                 #normalize the values
                 total_action_values[0] /= 2 #the ends only get added to twice
-                total_action_values[9] /= 2
+                total_action_values[8] /= 2
                 total_action_values[1:9] /= 3
+
                 # print(total_action_values[1:9].shape)
                 print(total_action_values)
                 #make a heatmap of paddles
                 total_action_values -= numpy.min(total_action_values)
                 total_action_values /= numpy.max(total_action_values)
+
+                noop_action_values -= numpy.min(noop_action_values)
+                noop_action_values /= numpy.max(noop_action_values)
+
+                up_action_values -= numpy.min(up_action_values)
+                up_action_values /= numpy.max(up_action_values)
+
+                down_action_values -= numpy.min(down_action_values)
+                down_action_values /= numpy.max(down_action_values)
+
+                print(numpy.min(total_action_values))
+                print(numpy.max(total_action_values))
+                print(total_action_values)
                 test_screen[:,113:,:] = -.11
                 for i in range(10):
                     paddle = [ 5+13*i,18+13*i,114,116]
                     #make it a color range
                     if total_action_values[i] < .33:
-                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],0] = total_action_values[i]
+                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,0] = total_action_values[i]
                     elif total_action_values[i] < .66:
-                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],1] = total_action_values[i]
+                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,1] = total_action_values[i] - .25
                     else:
-                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[3],2] = total_action_values[i]
+                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,2] = total_action_values[i] - .5
+                    #put noop one line behind the total
+                    if noop_action_values[i] < .33:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,0] = noop_action_values[i]
+                    elif noop_action_values[i] < .66:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,1] = noop_action_values[i] - .25
+                    else:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,2] = noop_action_values[i] - .5
+
+                    if up_action_values[i] < .33:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,0] = up_action_values[i]
+                    elif up_action_values[i] < .66:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,1] = up_action_values[i] - .25
+                    else:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,2] = up_action_values[i] - .5
+
+                    if down_action_values[i] < .33:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,0] = down_action_values[i]
+                    elif down_action_values[i] < .66:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,1] = down_action_values[i] - .25
+                    else:
+                        test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,2] = down_action_values[i] - .5
 
                 return test_screen
 
 
-            #defualt starting point
+            #default starting point
             x = 60
             y = 60
             angle = 90
@@ -176,7 +218,7 @@ if __name__=="__main__":
                     #move x y and angle
                     test_screen = redraw_heatmap(x,y,angle) #angle in degrees
 
-                cv2.imshow('screen',cv2.resize(test_screen,(0,0),fx=2,fy=2 ))
+                cv2.imshow('screen',cv2.resize(test_screen,(0,0),fx=4,fy=4 ))
                 key = cv2.waitKey(1000)
                 print(key)
             exit(0)

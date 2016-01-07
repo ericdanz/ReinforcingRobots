@@ -121,7 +121,7 @@ if __name__=="__main__":
                 summary_writer.add_summary(game_length_summ, current_step)
 
 
-                if i % display_steps == 0 and current_step != 0:
+                if i % display_steps == 0 and current_step != 0 and i != 0:
                     #save
                     saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
                     #do a test run
