@@ -39,7 +39,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
             #flip the screen and play for the right side
             # screen = simulator.screen[:,::-1]
             #now do actions, e-greedy
-            if numpy.random.uniform() < numpy.max([epsilon,0.1]):
+            if numpy.random.uniform() < epsilon:#numpy.max([epsilon,0.1]):
                 #do a random action
                 left_action = numpy.random.randint(actor.number_of_actions)
             else:
@@ -103,7 +103,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
 
             break
 
-    return state_list + left_state_list
+    return state_list #+ left_state_list
 
 class FakeActor:
     def __init__(self,num_actions):

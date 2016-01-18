@@ -42,7 +42,7 @@ class Simulator:
 
     def render(self):
         #blank the screen
-        self.screen = numpy.random.randn(self.screen.shape[0],self.screen.shape[1],self.screen.shape[2])/100
+        self.screen = numpy.random.randn(self.screen.shape[0],self.screen.shape[1],self.screen.shape[2])/1000
         #draw the paddles
         self.screen[int(self.paddle_location[0]-self.paddle_size/2):int(self.paddle_location[0]+self.paddle_size/2),int(self.paddle_location[1]-1):int(self.paddle_location[1]+1),0] = 1
         self.screen[int(self.other_paddle_location[0]-self.paddle_size/2):int(self.other_paddle_location[0]+self.paddle_size/2),int(self.other_paddle_location[1]-1):int(self.other_paddle_location[1]+1),0] = 1

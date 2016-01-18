@@ -16,6 +16,9 @@ def bias_variable(shape):
   initial = tf.constant(0.1, shape=shape)
   return tf.Variable(initial,name='biases')
 
+def leakyReLU(x):
+    return tf.nn.relu(x) - 0.01 * tf.nn.relu(-x)
+
 class ActionLearner(object):
     def __init__(self,image_size, n_filters, n_hidden, n_out):
         self.image_size = image_size
@@ -29,26 +32,30 @@ class ActionLearner(object):
             with tf.name_scope('hidden_conv1') as scope:
                 W_conv1 = weight_variable([5, 5, 3, n_filters])
                 b_conv1 = bias_variable([n_filters])
-                h_conv1 = tf.nn.relu(conv2d(self.x, W_conv1) + b_conv1)
+                #h_conv1 = tf.nn.relu(conv2d(self.x, W_conv1) + b_conv1)
+                h_conv1 = leakyReLU(conv2d(self.x, W_conv1) + b_conv1)
                 h_pool1 = max_pool_2x2(h_conv1)
 
             with tf.name_scope('hidden_conv2') as scope:
-                W_conv2 = weight_variable([3, 3, n_filters, n_filters])
-                b_conv2 = bias_variable([n_filters])
-                h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+                W_conv2 = weight_variable([3, 3, n_filters, n_filters*2])
+                b_conv2 = bias_variable([n_filters*2])
+                #h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)
+                h_conv2 = leakyReLU(conv2d(h_pool1, W_conv2) + b_conv2)
                 h_pool2 = max_pool_2x2(h_conv2)
 
             with tf.name_scope('hidden_conv3') as scope:
-                W_conv3 = weight_variable([3, 3, n_filters, n_filters])
-                b_conv3 = bias_variable([n_filters])
-                h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
+                W_conv3 = weight_variable([3, 3, n_filters*2, n_filters*2])
+                b_conv3 = bias_variable([n_filters*2])
+                #h_conv3 = tf.nn.relu(conv2d(h_pool2, W_conv3) + b_conv3)
+                h_conv3 = leakyReLU(conv2d(h_pool2, W_conv3) + b_conv3)
                 h_pool3 = max_pool_2x2(h_conv3)
 
             with tf.name_scope('hidden_fc1') as scope:
-                W_fc1 = weight_variable([int(self.image_size/8)*int(self.image_size/8)*n_filters, n_hidden])
+                W_fc1 = weight_variable([int(self.image_size/8)*int(self.image_size/8)*n_filters*2, n_hidden])
                 b_fc1 = bias_variable([n_hidden])
-                h_pool3_flat = tf.reshape(h_pool3, [-1, int(self.image_size/8)*int(self.image_size/8)*n_filters])
-                h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+                h_pool3_flat = tf.reshape(h_pool3, [-1, int(self.image_size/8)*int(self.image_size/8)*n_filters*2])
+                #h_fc1 = tf.nn.relu(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
+                h_fc1 = leakyReLU(tf.matmul(h_pool3_flat, W_fc1) + b_fc1)
                 h_fc1_drop = tf.nn.dropout(h_fc1, self.dropout_keep_prob)
 
             with tf.name_scope('hidden_fc2') as scope:
@@ -81,7 +88,7 @@ class ActionLearner(object):
                 self.normal_cost = tf.reduce_mean(tf.pow((self.output - self.y),2)) #this just subtracts the largely 0 y matrix
                 self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2)) #this subtracts a matrix almost identical to self.output
                 #add l2 penalty
-                self.single_action_cost += regularizers*2e-4
+                self.single_action_cost += regularizers*1e-7
                 correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
                 self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
                 self.number_of_actions = n_out

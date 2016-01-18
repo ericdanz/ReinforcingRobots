@@ -42,6 +42,7 @@ if __name__=="__main__":
         device_string = '/gpu:{}'.format(gpu_flag)
     else:
         device_string = "/cpu:0"
+    device_string = "/cpu:0"
     with tf.Graph().as_default(), tf.device(device_string):
         sess = tf.Session(config=tf.ConfigProto(
             allow_soft_placement=True,
@@ -202,17 +203,17 @@ if __name__=="__main__":
             test_screen = redraw_heatmap(x,y,angle)
             while True:
                 if key != -1:
-                    if key == 63232:
+                    if key == 1113938:#63232:
                         y -= 2
-                    elif key == 63233:
+                    elif key == 1113940:#63233:
                         y += 2
-                    elif key == 63234:
+                    elif key == 1113937:#63234:
                         x -= 2
-                    elif key == 63235:
+                    elif key == 1113939:#63235:
                         x += 2
-                    elif key == 113:
+                    elif key == 1048689:#113:
                         angle -= 10
-                    elif key == 101:
+                    elif key == 1048677:#101:
                         angle += 10
 
                     #move x y and angle

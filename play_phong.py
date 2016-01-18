@@ -17,7 +17,7 @@ if __name__=="__main__":
     parser.add_argument("--number_of_games",help="how many games to simulate per training run",default=200,type=int)
     parser.add_argument("--restore",help="to restore from the saved folder",default="No",type=str)
     parser.add_argument("--save_folder",help="where to save the session variables",default="/tmp/logs/",type=str)
-    parser.add_argument("--learning_rate",help="how fast to learn",default=1e-4,type=int)
+    parser.add_argument("--learning_rate",help="how fast to learn",default=1e-5,type=int)
     parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.01,type=float)
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
@@ -99,11 +99,11 @@ if __name__=="__main__":
             previous_state[:,:,0] = numpy.reshape(sim.screen,(sim.image_size,sim.image_size))
             screen = sim.screen
             for i in range(1000):
-                cv2.imshow('Phong!',screen)
+                cv2.imshow('Phong!',cv2.resize(screen,(0,0),fx=2,fy=2))
                 key = cv2.waitKey(8)
-                if key == 63232:
+                if key == 1113938:#63232:
                     screen,score,points_made,end = sim.do_action(1,side="left")
-                elif key == 63233:
+                elif key == 1113940:#63233:
                     screen,score,points_made,end = sim.do_action(2,side="left")
                 else:
                     screen,score,points_made,end = sim.do_action(0,side="left")
