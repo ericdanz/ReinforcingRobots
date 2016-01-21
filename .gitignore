@@ -98,3 +98,6 @@ luac.out
 *.i*86
 *.x86_64
 *.hex
+
+#mac
+.DS_Store
