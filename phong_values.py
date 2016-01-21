@@ -161,36 +161,39 @@ if __name__=="__main__":
                 print(numpy.max(total_action_values))
                 print(total_action_values)
                 test_screen[:,113:,:] = -.11
+                ordered_total = numpy.argsort(total_action_values)
                 for i in range(10):
+                    paddle = [ 5+13*ordered_total[i],18+13*ordered_total[i],114,116]
+                    test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,:] = i*.1
                     paddle = [ 5+13*i,18+13*i,114,116]
                     #make it a color range
-                    if total_action_values[i] < .33:
-                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,0] = total_action_values[i]
-                    elif total_action_values[i] < .66:
-                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,1] = total_action_values[i] - .25
-                    else:
-                        test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,2] = total_action_values[i] - .5
+                    # if total_action_values[i] < .33:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,0] += total_action_values[i]
+                    # elif total_action_values[i] < .66:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,1] += total_action_values[i] - .25
+                    # else:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,2] += total_action_values[i] - .5
                     #put noop one line behind the total
-                    if noop_action_values[i] < .33:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,0] = noop_action_values[i]
-                    elif noop_action_values[i] < .66:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,1] = noop_action_values[i] - .25
-                    else:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,2] = noop_action_values[i] - .5
-
-                    if up_action_values[i] < .33:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,0] = up_action_values[i]
-                    elif up_action_values[i] < .66:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,1] = up_action_values[i] - .25
-                    else:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,2] = up_action_values[i] - .5
-
-                    if down_action_values[i] < .33:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,0] = down_action_values[i]
-                    elif down_action_values[i] < .66:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,1] = down_action_values[i] - .25
-                    else:
-                        test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,2] = down_action_values[i] - .5
+                    # if noop_action_values[i] < .33:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,0] = noop_action_values[i]
+                    # elif noop_action_values[i] < .66:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,1] = noop_action_values[i] - .25
+                    # else:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,2] = noop_action_values[i] - .5
+                    #
+                    # if up_action_values[i] < .33:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,0] = up_action_values[i]
+                    # elif up_action_values[i] < .66:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,1] = up_action_values[i] - .25
+                    # else:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,2] = up_action_values[i] - .5
+                    #
+                    # if down_action_values[i] < .33:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,0] = down_action_values[i]
+                    # elif down_action_values[i] < .66:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,1] = down_action_values[i] - .25
+                    # else:
+                    #     test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,2] = down_action_values[i] - .5
 
                 return test_screen
 
@@ -203,17 +206,17 @@ if __name__=="__main__":
             test_screen = redraw_heatmap(x,y,angle)
             while True:
                 if key != -1:
-                    if key == 1113938:#63232:
+                    if key == 63232:#1113938:#63232:
                         y -= 2
-                    elif key == 1113940:#63233:
+                    elif key == 63233:#1113940:#63233:
                         y += 2
-                    elif key == 1113937:#63234:
+                    elif key == 63234:#1113937:#
                         x -= 2
-                    elif key == 1113939:#63235:
+                    elif key == 63235:#1113939:#
                         x += 2
-                    elif key == 1048689:#113:
+                    elif key == 113:#1048689:#
                         angle -= 10
-                    elif key == 1048677:#101:
+                    elif key == 101:#1048677:#
                         angle += 10
 
                     #move x y and angle
