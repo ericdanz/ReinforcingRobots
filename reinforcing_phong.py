@@ -18,7 +18,7 @@ if __name__=="__main__":
     parser.add_argument("--restore",help="to restore from the saved folder",default="No",type=str)
     parser.add_argument("--save_folder",help="where to save the session variables",default="/tmp/logs/",type=str)
     parser.add_argument("--learning_rate",help="how fast to learn",default=1e-6,type=float)
-    parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.0001,type=float)
+    parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.00001,type=float)
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
     parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=1024,type=int)
@@ -37,7 +37,7 @@ if __name__=="__main__":
     epsilon = 1
     epsilon_decay = args.epsilon_decay
     display_steps = args.display_iterations
-    sim = Simulator(20)
+    sim = Simulator(1)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
     else:
@@ -88,7 +88,7 @@ if __name__=="__main__":
                     summary_writer.add_summary(filter_summ, step)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
-                # print("{}".format(test_diff))
+
             for i in range(10000):
                 try:
                     current_step = tf.train.global_step(sess, global_step)
@@ -107,8 +107,6 @@ if __name__=="__main__":
                         index = 0
                         for state in random_states:
                             screens[index,:,:] = state[0][4]
-                            # screens[index,:,:,1] = numpy.reshape(state[0][4],(sim.image_size,sim.image_size))
-                            # screens[index,:,:,2] = numpy.reshape(state[0][4],(sim.image_size,sim.image_size))
                             actions[index,state[0][2]] = float(state[0][1])
                             index += 1
                         train_step(screens,actions)
@@ -117,33 +115,16 @@ if __name__=="__main__":
                         print(i,current_epsilon)
                         saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
 
-                    game_length_summary = tf.scalar_summary("game_length",avg_game_lengths)
-                    game_length_summ = sess.run(game_length_summary)
-                    summary_writer.add_summary(game_length_summ, current_step)
 
                     if i % display_steps == 0 and current_step != 0 and i != 0:
                         #save
                         saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
                         #do a test run
-                        sim.reset(sim.image_size,10)
-                        #get an average game length, as proxy for learnin'
-                        game_score = []
+                        sim.reset()
                         for j in range(5):
                             display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
-                            game_score.append(display_state_list[-1][0][1])
-                        print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
                 except KeyboardInterrupt:
                     #do a test run
-                    sim.reset(sim.image_size,10)
-                    #get an average game length, as proxy for learnin'
-                    game_score = []
+                    sim.reset()
                     for j in range(5):
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
-                        game_score.append(display_state_list[-1][0][1])
-                    print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
-
-                    #show the last one
-                    # for state in display_state_list:
-                        # cv2.imshow('sim',cv2.resize(state[0][0],(0,0),fx=2,fy=2))
-                        # cv2.waitKey(1000)
-                    # cv2.destroyAllWindows()

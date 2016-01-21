@@ -88,13 +88,10 @@ if __name__=="__main__":
                     summary_writer.add_summary(filter_summ, step)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
-                # print("{}".format(test_diff))
 
             #just display games
 
-            sim.reset(sim.image_size,10)
-            #get an average game length, as proxy for learnin'
-            game_score = []
+            sim.reset(1)
             previous_state = numpy.zeros((sim.image_size,sim.image_size,3))
             previous_state[:,:,0] = numpy.reshape(sim.screen,(sim.image_size,sim.image_size))
             screen = sim.screen
@@ -113,7 +110,3 @@ if __name__=="__main__":
                 previous_state[:,:,0] = numpy.reshape(screen,(sim.image_size,sim.image_size))
 
                 print(score)
-            # for j in range(5):
-            #     display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
-            #     game_score.append(display_state_list[-1][0][1])
-            # print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))
