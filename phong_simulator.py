@@ -20,10 +20,7 @@ class Simulator:
                 self.paddle_location[0] += int(self.image_size/10)
             self.render()
             did_score = self.did_score()
-            if did_score != 0:
-                return self.screen,self.return_score(),self.points_made,did_score
-            else:
-                return self.screen,self.return_score(),self.points_made,did_score
+            return self.screen,self.return_score(),self.points_made,did_score
         elif side == "left":
             #action is an int
             if action == 0:
@@ -36,9 +33,7 @@ class Simulator:
                 #go down
                 self.other_paddle_location[0] += int(self.image_size/10)
 
-            #self.render() #these only happen when the 'right' side moves
-            #self.did_score()
-            return None,None,None,0 #self.screen,self.return_score()
+            return None,None,None,0
 
     def render(self):
         #blank the screen
@@ -59,7 +54,6 @@ class Simulator:
 
 
     def return_score(self):
-        #return the 2 norm
         return self.score
 
     def reset(self,reward=None,score=0,points_made=0):
@@ -79,22 +73,18 @@ class Simulator:
         self.ball_location[1] = self.image_size / 2
         self.ball_direction = numpy.random.uniform(size=2)*2.0
         self.ball_direction -= 1
-        # print(self.ball_direction)
         if numpy.abs(self.ball_direction[0]) < .3:
             self.ball_direction[0] *= .3/numpy.abs(self.ball_direction[0])
         if numpy.abs(self.ball_direction[1]) < .3:
             self.ball_direction[1] *= .3/numpy.abs(self.ball_direction[1])
-        # print(self.ball_direction)
         self.render()
 
     def did_score(self):
         #check if the ball has gone past the paddles
         if self.ball_location[1] > self.paddle_location[1] + 1:
-            # self.score -= self.reward
             self.reset(self.reward,points_made = self.points_made + 1) #maintain a count of how many times someone scored
             return -1
         if self.ball_location[1] < self.other_paddle_location[1] - 1 :
-            # self.score += self.reward
             self.reset(self.reward,points_made = self.points_made + 1)
             return 1
         return 0
@@ -154,7 +144,7 @@ class Simulator:
             return "right"
 
 if __name__ == "__main__":
-    sim = Simulator(10)
+    sim = Simulator(1)
     cv2.imshow('Phong!',sim.screen)
     cv2.waitKey(1000)
     screen,score = sim.do_action(2)

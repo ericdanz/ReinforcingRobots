@@ -12,12 +12,6 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
     last_score_list = []
     for i in tqdm(range(number_of_games)):
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
-        #tying the mix of wins to epsilon allows a decay in random games, leading towards
-        #more wins as the learning progresses
-        # while (len(state_list) == number_of_steps) and (winners_only) and (numpy.random.uniform() > (numpy.min([0,epsilon]) + 0.01) ):
-        #     state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
-        # print("last points made",state_list[-1][0][1])
-        # time.sleep(.1)
         last_score_list.append(state_list[-1][0][1]) #change this to average score
         game_list = game_list + state_list
     print("The average game score (higher is better): {}".format(numpy.mean(last_score_list)))
@@ -39,7 +33,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
             #flip the screen and play for the right side
             # screen = simulator.screen[:,::-1]
             #now do actions, e-greedy
-            if numpy.random.uniform() < epsilon:#numpy.max([epsilon,0.1]):
+            if numpy.random.uniform() < numpy.max([epsilon,0.1]):
                 #do a random action
                 left_action = numpy.random.randint(actor.number_of_actions)
             else:
@@ -59,18 +53,12 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
         if end == 0:
             #move the game along with a no-op!
             screen,score,points_made,end = simulator.do_action(0,side="right")
-        #if the ball side won
 
         if display:
             print('no-op            ', 'up          ','down')
             print(actor.display_output)
             cv2.imshow('Phong!',cv2.resize(screen,(0,0),fx=2,fy=2))
             cv2.waitKey(100)
-        # if simulator.ball_side() == "left":
-        #     #state.append([screen,score*-1,action])
-        #     #don't append left screens for now
-        #     pass
-        # else:
 
         state.append([screen,score,action,points_made,previous_state])
         state_list.append(copy.deepcopy(state))

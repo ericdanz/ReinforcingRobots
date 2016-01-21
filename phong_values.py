@@ -9,6 +9,14 @@ import cv2
 import getopt,sys,argparse
 import time
 
+
+UP_KEY = 63232
+DOWN_KEY = 63233
+LEFT_KEY = 63234
+RIGHT_KEY = 63235
+TURN_RIGHT = 101
+TURN_LEFT = 113
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i","--image_size",help="size of simulation screen",default=64,type=int)
@@ -37,11 +45,8 @@ if __name__=="__main__":
     epsilon = 1
     epsilon_decay = args.epsilon_decay
     display_steps = args.display_iterations
-    sim = Simulator(20)
-    if gpu_flag > -1:
-        device_string = '/gpu:{}'.format(gpu_flag)
-    else:
-        device_string = "/cpu:0"
+    sim = Simulator(1)
+
     device_string = "/cpu:0"
     with tf.Graph().as_default(), tf.device(device_string):
         sess = tf.Session(config=tf.ConfigProto(
@@ -56,40 +61,12 @@ if __name__=="__main__":
                 )
             learner.set_sess(sess)
 
-            global_step = tf.Variable(0, name="global_step", trainable=False)
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-
-            grads_and_vars = optimizer.compute_gradients(learner.single_action_cost) #could also use learner.normal_cost
-            train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
-
-            loss_summary = tf.scalar_summary("cost", learner.single_action_cost)
-            #visualize those first level filters
-            filter_summary = tf.image_summary("filters",learner.first_level_filters,max_images=6)
-
             saver = tf.train.Saver(tf.all_variables())
             sess.run(tf.initialize_all_variables())
             summary_writer = tf.train.SummaryWriter(args.save_folder, sess.graph_def)
             if args.restore != "No":
                 saver.restore(sess, args.save_folder+args.restore)
 
-            def train_step(x_batch, y_batch):
-                """
-                A single training step
-                """
-                feed_dict = {
-                  learner.x: x_batch,
-                  learner.y: y_batch,
-                  learner.dropout_keep_prob: 0.6
-                }
-                _, step,  loss, test_diff,loss_summ,filter_summ = sess.run(
-                    [train_op, global_step,  learner.single_action_cost, learner.test_diff,loss_summary,filter_summary],
-                    feed_dict)
-                summary_writer.add_summary(loss_summ, step)
-                if step % 50 == 0:
-                    summary_writer.add_summary(filter_summ, step)
-                time_str = datetime.datetime.now().isoformat()
-                print("{}: step {}, loss {}".format(time_str, step, loss))
-                # print("{}".format(test_diff))
 
             def redraw_heatmap(x,y,angle):
                 #convert to radians
@@ -135,14 +112,11 @@ if __name__=="__main__":
                     if i < 9:
                         total_action_values[i+1] += action_values[2]
                         down_action_values[i+1] += action_values[2]
-                    # cv2.imshow('screen',test_screen)
-                    # cv2.waitKey(100)
                 #normalize the values
                 total_action_values[0] /= 2 #the ends only get added to twice
                 total_action_values[8] /= 2
                 total_action_values[1:9] /= 3
 
-                # print(total_action_values[1:9].shape)
                 print(total_action_values)
                 #make a heatmap of paddles
                 total_action_values -= numpy.min(total_action_values)
@@ -166,37 +140,7 @@ if __name__=="__main__":
                     paddle = [ 5+13*ordered_total[i],18+13*ordered_total[i],114,116]
                     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,:] = i*.1
                     paddle = [ 5+13*i,18+13*i,114,116]
-                    #make it a color range
-                    # if total_action_values[i] < .33:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,0] += total_action_values[i]
-                    # elif total_action_values[i] < .66:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,1] += total_action_values[i] - .25
-                    # else:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]:paddle[2]+2,2] += total_action_values[i] - .5
-                    #put noop one line behind the total
-                    # if noop_action_values[i] < .33:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,0] = noop_action_values[i]
-                    # elif noop_action_values[i] < .66:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,1] = noop_action_values[i] - .25
-                    # else:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+2:paddle[2]+4,2] = noop_action_values[i] - .5
-                    #
-                    # if up_action_values[i] < .33:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,0] = up_action_values[i]
-                    # elif up_action_values[i] < .66:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,1] = up_action_values[i] - .25
-                    # else:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+4:paddle[2]+6,2] = up_action_values[i] - .5
-                    #
-                    # if down_action_values[i] < .33:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,0] = down_action_values[i]
-                    # elif down_action_values[i] < .66:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,1] = down_action_values[i] - .25
-                    # else:
-                    #     test_screen[paddle[0]:paddle[1],paddle[2]+6:paddle[2]+8,2] = down_action_values[i] - .5
-
                 return test_screen
-
 
             #default starting point
             x = 60
@@ -206,17 +150,17 @@ if __name__=="__main__":
             test_screen = redraw_heatmap(x,y,angle)
             while True:
                 if key != -1:
-                    if key == 63232:#1113938:#63232:
+                    if key == UP_KEY:
                         y -= 2
-                    elif key == 63233:#1113940:#63233:
+                    elif key == DOWN_KEY:
                         y += 2
-                    elif key == 63234:#1113937:#
+                    elif key == LEFT_KEY:
                         x -= 2
-                    elif key == 63235:#1113939:#
+                    elif key == RIGHT_KEY:
                         x += 2
-                    elif key == 113:#1048689:#
+                    elif key == TURN_LEFT:
                         angle -= 10
-                    elif key == 101:#1048677:#
+                    elif key == TURN_RIGHT:
                         angle += 10
 
                     #move x y and angle
@@ -224,5 +168,4 @@ if __name__=="__main__":
 
                 cv2.imshow('screen',cv2.resize(test_screen,(0,0),fx=4,fy=4 ))
                 key = cv2.waitKey(1000)
-                print(key)
             exit(0)

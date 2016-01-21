@@ -9,6 +9,9 @@ import cv2
 import getopt,sys,argparse
 import time
 
+UP_KEY = 63232
+DOWN_KEY = 63233
+
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i","--image_size",help="size of simulation screen",default=64,type=int)
@@ -88,22 +91,19 @@ if __name__=="__main__":
                     summary_writer.add_summary(filter_summ, step)
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
-                # print("{}".format(test_diff))
 
             #just display games
-
             sim.reset()
             #get an average game length, as proxy for learnin'
-            game_score = []
             previous_state = numpy.zeros((sim.image_size,sim.image_size,3))
             previous_state[:,:,0] = numpy.reshape(sim.screen,(sim.image_size,sim.image_size))
             screen = sim.screen
             for i in range(1000):
                 cv2.imshow('Phong!',cv2.resize(screen,(0,0),fx=2,fy=2))
                 key = cv2.waitKey(8)
-                if key == 63232:#1113938:#63232:
+                if key == UP_KEY:
                     screen,score,points_made,end = sim.do_action(1,side="left")
-                elif key == 63233: #1113940:#63233:
+                elif key == DOWN_KEY:
                     screen,score,points_made,end = sim.do_action(2,side="left")
                 else:
                     screen,score,points_made,end = sim.do_action(0,side="left")
@@ -117,7 +117,3 @@ if __name__=="__main__":
                 previous_state_image *= 255
                 cv2.imwrite('phong_state.png',previous_state_image)
                 print(score)
-            # for j in range(5):
-            #     display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
-            #     game_score.append(display_state_list[-1][0][1])
-            # print("The average game score (higher is better, and 10 is the max): {}".format(numpy.mean(game_score)))

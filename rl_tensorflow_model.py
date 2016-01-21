@@ -83,7 +83,6 @@ class ActionLearner(object):
                 output_2 = tf.identity(self.output)
                 output_2 = output_2 - y_2 #should now have 0s at the nonzero y
                 output_2 = output_2 + self.y #should now have y values at the actions taken, output values everywhere else
-                self.test_diff = self.output-output_2
 
                 self.normal_cost = tf.reduce_mean(tf.pow((self.output - self.y),2)) #this just subtracts the largely 0 y matrix
                 self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2)) #this subtracts a matrix almost identical to self.output
