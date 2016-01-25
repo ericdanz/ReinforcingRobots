@@ -9,9 +9,10 @@ import cv2
 import getopt,sys,argparse
 import time
 
-UP_KEY = 63232
-DOWN_KEY = 63233
-
+#UP_KEY = 63232
+#DOWN_KEY = 63233
+UP_KEY = 1113938
+DOWN_KEY = 1113940
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i","--image_size",help="size of simulation screen",default=64,type=int)
@@ -24,7 +25,7 @@ if __name__=="__main__":
     parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.01,type=float)
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
-    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=1024,type=int)
+    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=512,type=int)
 
     args = parser.parse_args()
 
@@ -59,14 +60,6 @@ if __name__=="__main__":
             learner.set_sess(sess)
 
             global_step = tf.Variable(0, name="global_step", trainable=False)
-            optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
-
-            grads_and_vars = optimizer.compute_gradients(learner.single_action_cost) #could also use learner.normal_cost
-            train_op = optimizer.apply_gradients(grads_and_vars, global_step=global_step)
-
-            loss_summary = tf.scalar_summary("cost", learner.single_action_cost)
-            #visualize those first level filters
-            filter_summary = tf.image_summary("filters",learner.first_level_filters,max_images=6)
 
             saver = tf.train.Saver(tf.all_variables())
             sess.run(tf.initialize_all_variables())
@@ -74,27 +67,9 @@ if __name__=="__main__":
             if args.restore != "No":
                 saver.restore(sess, args.save_folder+args.restore)
 
-            def train_step(x_batch, y_batch):
-                """
-                A single training step
-                """
-                feed_dict = {
-                  learner.x: x_batch,
-                  learner.y: y_batch,
-                  learner.dropout_keep_prob: 0.5
-                }
-                _, step,  loss, test_diff,loss_summ,filter_summ = sess.run(
-                    [train_op, global_step,  learner.single_action_cost, learner.test_diff,loss_summary,filter_summary],
-                    feed_dict)
-                summary_writer.add_summary(loss_summ, step)
-                if step % 50 == 0:
-                    summary_writer.add_summary(filter_summ, step)
-                time_str = datetime.datetime.now().isoformat()
-                print("{}: step {}, loss {}".format(time_str, step, loss))
 
             #just display games
             sim.reset()
-            #get an average game length, as proxy for learnin'
             previous_state = numpy.zeros((sim.image_size,sim.image_size,3))
             previous_state[:,:,0] = numpy.reshape(sim.screen,(sim.image_size,sim.image_size))
             screen = sim.screen

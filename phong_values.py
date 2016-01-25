@@ -29,7 +29,7 @@ if __name__=="__main__":
     parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.001,type=float)
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
-    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=1024,type=int)
+    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=512,type=int)
 
     args = parser.parse_args()
 
