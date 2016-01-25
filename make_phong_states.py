@@ -14,7 +14,6 @@ def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_
         state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
         last_score_list.append(state_list[-1][0][1]) #change this to average score
         game_list = game_list + state_list
-    print("The average game score (higher is better): {}".format(numpy.mean(last_score_list)))
     return game_list,numpy.mean(last_score_list)
 
 

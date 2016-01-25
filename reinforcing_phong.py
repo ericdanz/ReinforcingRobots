@@ -21,7 +21,7 @@ if __name__=="__main__":
     parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.00001,type=float)
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
-    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=1024,type=int)
+    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=512,type=int)
 
     args = parser.parse_args()
 
@@ -80,8 +80,8 @@ if __name__=="__main__":
                   learner.y: y_batch,
                   learner.dropout_keep_prob: 0.95
                 }
-                _, step,  loss, test_diff,loss_summ,filter_summ = sess.run(
-                    [train_op, global_step,  learner.single_action_cost, learner.test_diff,loss_summary,filter_summary],
+                _, step,  loss,loss_summ,filter_summ = sess.run(
+                    [train_op, global_step,  learner.single_action_cost ,loss_summary,filter_summary],
                     feed_dict)
                 summary_writer.add_summary(loss_summ, step)
                 if step % 50 == 0:
@@ -89,7 +89,7 @@ if __name__=="__main__":
                 time_str = datetime.datetime.now().isoformat()
                 print("{}: step {}, loss {}".format(time_str, step, loss))
 
-            for i in range(10000):
+            for i in range(20000):
                 try:
                     current_step = tf.train.global_step(sess, global_step)
                     current_epsilon = numpy.max([0.1,epsilon - epsilon_decay*current_step]) #always have a little randomness
@@ -112,7 +112,7 @@ if __name__=="__main__":
                         train_step(screens,actions)
                     if i % 10 == 0:
                         #save
-                        print(i,current_epsilon)
+                        print("saving at iteration {}, with epsilon of {}".format(i,current_epsilon))
                         saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
 
 
