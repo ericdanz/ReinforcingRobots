@@ -1,5 +1,5 @@
 from rl_tensorflow_model import ActionLearner
-import numpy
+import numpy as np
 from phong_simulator import Simulator
 from make_phong_states import make_states,make_one_set
 import random
@@ -18,11 +18,13 @@ if __name__=="__main__":
     parser.add_argument("--restore",help="to restore from the saved folder",default="No",type=str)
     parser.add_argument("--save_folder",help="where to save the session variables",default="/tmp/logs/",type=str)
     parser.add_argument("--learning_rate",help="how fast to learn",default=1e-6,type=float)
-    parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=0.00001,type=float)
+    parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=1e-5,type=float)
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
     parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=512,type=int)
     parser.add_argument("--play_itself",help="whether this will play against itself or a simple Pong AI",default=0,type=int)
+    parser.add_argument("--state_space",help="How many moves up and down the paddle can make",default=10,type=int)
+
 
     args = parser.parse_args()
 
@@ -38,7 +40,7 @@ if __name__=="__main__":
     epsilon = 1
     epsilon_decay = args.epsilon_decay
     display_steps = args.display_iterations
-    sim = Simulator(1)
+    sim = Simulator(1,screen_size=args.image_size,state_space=args.state_space)
     if gpu_flag > -1:
         device_string = '/gpu:{}'.format(gpu_flag)
     else:
@@ -49,7 +51,7 @@ if __name__=="__main__":
             log_device_placement=False))
         with sess.as_default():
             learner = ActionLearner(
-                image_size=sim.image_size,
+                image_size=sim.screen_size,
                 n_filters=args.number_of_filters,
                 n_hidden=args.number_of_hidden,
                 n_out=sim.number_of_actions
@@ -85,23 +87,25 @@ if __name__=="__main__":
                     [train_op, global_step,  learner.single_action_cost ,loss_summary,filter_summary],
                     feed_dict)
                 summary_writer.add_summary(loss_summ, step)
+                time_str = datetime.datetime.now().isoformat()
                 if step % 50 == 0:
                     summary_writer.add_summary(filter_summ, step)
-                time_str = datetime.datetime.now().isoformat()
-                print("{}: step {}, loss {}".format(time_str, step, loss))
+                    print("{}: step {}, loss {}".format(time_str, step, loss))
+
+
 
             for i in range(20000):
                 try:
                     current_step = tf.train.global_step(sess, global_step)
-                    current_epsilon = numpy.max([0.1,epsilon - epsilon_decay*current_step]) #always have a little randomness
+                    current_epsilon = np.max([0.1,epsilon - epsilon_decay*current_step]) #always have a little randomness
 
                     #create a batch of states
                     start_time = time.time()
                     state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=300,number_of_games=number_of_games,winners_only=False,play_itself=args.play_itself)
                     print('took {} seconds'.format(time.time() - start_time))
                     #create a random selection of this state list for training
-                    screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))
-                    actions = numpy.zeros((batch_size,sim.number_of_actions),dtype=numpy.float32)
+                    screens = np.zeros((batch_size,sim.screen_size,sim.screen_size,3))
+                    actions = np.zeros((batch_size,sim.number_of_actions),dtype=np.float32)
                     for j in range(int(len(state_list)/batch_size)):
                         #grab random batches from the training images
                         random_states = random.sample(state_list,batch_size)
@@ -129,3 +133,5 @@ if __name__=="__main__":
                     sim.reset()
                     for j in range(5):
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
+                        print("displaying against weak Pong AI")
+                        display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True,play_itself=0)

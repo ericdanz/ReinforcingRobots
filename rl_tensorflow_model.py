@@ -1,5 +1,5 @@
 import tensorflow as tf
-import numpy
+import numpy as np
 
 def conv2d(x, W):
   return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
@@ -22,7 +22,7 @@ def leakyReLU(x):
 class ActionLearner(object):
     def __init__(self,image_size, n_filters, n_hidden, n_out):
         self.image_size = image_size
-        self.display_output = numpy.zeros(n_out)
+        self.display_output = np.zeros(n_out)
         with tf.name_scope('model')  as scope:
             self.x = tf.placeholder("float", shape=[None, self.image_size,self.image_size,3],name='input_x')
             self.y = tf.placeholder("float", shape=[None, n_out],name='input_y')
@@ -87,7 +87,7 @@ class ActionLearner(object):
                 self.normal_cost = tf.reduce_mean(tf.pow((self.output - self.y),2)) #this just subtracts the largely 0 y matrix
                 self.single_action_cost = tf.reduce_mean(tf.pow((self.output - output_2),2)) #this subtracts a matrix almost identical to self.output
                 #add l2 penalty
-                self.single_action_cost += regularizers*1e-7
+                self.single_action_cost += regularizers*1e-6
                 correct_prediction = tf.equal(tf.argmax(self.output,1), tf.argmax(self.y,1))
                 self.accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
                 self.number_of_actions = n_out
