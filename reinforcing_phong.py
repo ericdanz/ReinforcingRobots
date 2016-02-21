@@ -22,6 +22,7 @@ if __name__=="__main__":
     parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
     parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
     parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=512,type=int)
+    parser.add_argument("--play_itself",help="whether this will play against itself or a simple Pong AI",default=0,type=int)
 
     args = parser.parse_args()
 
@@ -96,7 +97,7 @@ if __name__=="__main__":
 
                     #create a batch of states
                     start_time = time.time()
-                    state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=300,number_of_games=number_of_games,winners_only=False)
+                    state_list,avg_game_lengths = make_states(sim,learner,current_epsilon,number_of_steps=300,number_of_games=number_of_games,winners_only=False,play_itself=args.play_itself)
                     print('took {} seconds'.format(time.time() - start_time))
                     #create a random selection of this state list for training
                     screens = numpy.zeros((batch_size,sim.image_size,sim.image_size,3))

@@ -5,19 +5,19 @@ import time
 from tqdm import tqdm
 
 
-def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_only=False):
+def make_states(simulator,actor,epsilon,number_of_steps,number_of_games,winners_only=False,play_itself=1):
     #initialize something to hold the games
     #assume epsilon decay happens outside this function
     game_list = []
     last_score_list = []
     for i in tqdm(range(number_of_games)):
-        state_list = make_one_set(simulator,actor,epsilon,number_of_steps)
+        state_list = make_one_set(simulator,actor,epsilon,number_of_steps,play_itself=play_itself)
         last_score_list.append(state_list[-1][0][1]) #change this to average score
         game_list = game_list + state_list
     return game_list,numpy.mean(last_score_list)
 
 
-def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
+def make_one_set(simulator,actor,epsilon,number_of_steps,display=False,play_itself=1):
     state_list = []
     left_state_list = []
     previous_state = numpy.zeros((simulator.image_size,simulator.image_size,3))
@@ -28,7 +28,7 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
     for i in range(number_of_steps):
         state = []
         #check if the ball has crossed to the left field
-        if simulator.ball_side() == "left":
+        if simulator.ball_side() == "left" and play_itself:
             #flip the screen and play for the right side
             # screen = simulator.screen[:,::-1]
             #now do actions, e-greedy
@@ -38,6 +38,9 @@ def make_one_set(simulator,actor,epsilon,number_of_steps,display=False):
             else:
                 left_action = actor.return_action(previous_state[:,::-1])
             simulator.do_action(left_action,side="left")
+        elif simulator.ball_side() == "left":
+            #do pong AI
+            simulator.do_action(None,side="left",simple_AI=True)
         else:
             left_action = 0
         screen = simulator.screen

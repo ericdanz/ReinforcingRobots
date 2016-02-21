@@ -6,7 +6,7 @@ class Simulator:
         self.number_of_actions = 3
         self.reset(reward)
 
-    def do_action(self,action,side="right"):
+    def do_action(self,action,side="right",simple_AI=False):
         if side == "right":
             #action is an int
             if action == 0:
@@ -21,6 +21,12 @@ class Simulator:
             self.render()
             did_score = self.did_score()
             return self.screen,self.return_score(),self.points_made,did_score
+        elif side == "left" and simple_AI:
+            #see if the ball is above the paddle, move the paddle up
+            if self.ball_location[0] > self.other_paddle_location[0]:
+                self.other_paddle_location[0] += int(self.image_size/10)
+            if self.ball_location[0] < self.other_paddle_location[0]:
+                self.other_paddle_location[0] -= int(self.image_size/10)
         elif side == "left":
             #action is an int
             if action == 0:
