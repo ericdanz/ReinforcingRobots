@@ -1,7 +1,7 @@
 from rl_tensorflow_model import ActionLearner
 import numpy as np
 from phong_simulator import Simulator
-from make_phong_states import make_states,make_one_set
+from make_phong_states import make_states,make_one_set,run_test_games
 import random
 import tensorflow as tf
 import datetime
@@ -12,16 +12,16 @@ import time
 if __name__=="__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-i","--image_size",help="size of simulation screen",default=64,type=int)
-    parser.add_argument("-b","--batch_size",help="batch size for training",default=128,type=int)
+    parser.add_argument("-b","--batch_size",help="batch size for training",default=64,type=int)
     parser.add_argument("-g","--gpu",help="which gpu to use (-1 for cpu)",default=-1,type=int)
     parser.add_argument("--number_of_games",help="how many games to simulate per training run",default=200,type=int)
     parser.add_argument("--restore",help="to restore from the saved folder",default="No",type=str)
     parser.add_argument("--save_folder",help="where to save the session variables",default="/tmp/logs/",type=str)
-    parser.add_argument("--learning_rate",help="how fast to learn",default=1e-6,type=float)
+    parser.add_argument("--learning_rate",help="how fast to learn",default=1e-5,type=float)
     parser.add_argument("--epsilon_decay",help="how quickly to use the actor in simulations (vs random actions)",default=1e-5,type=float)
-    parser.add_argument("--display_iterations",help="how often to display a test game",default=100,type=int)
-    parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=32,type=int)
-    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=512,type=int)
+    parser.add_argument("--display_iterations",help="how often to display a test game",default=10,type=int)
+    parser.add_argument("--number_of_filters",help="how many filters the convolutional layer should have",default=16,type=int)
+    parser.add_argument("--number_of_hidden",help="how many hidden units to have",default=256,type=int)
     parser.add_argument("--play_itself",help="whether this will play against itself or a simple Pong AI",default=0,type=int)
     parser.add_argument("--state_space",help="How many moves up and down the paddle can make",default=10,type=int)
 
@@ -88,7 +88,7 @@ if __name__=="__main__":
                     feed_dict)
                 summary_writer.add_summary(loss_summ, step)
                 time_str = datetime.datetime.now().isoformat()
-                if step % 50 == 0:
+                if step % 100 == 0:
                     summary_writer.add_summary(filter_summ, step)
                     print("{}: step {}, loss {}".format(time_str, step, loss))
 
@@ -115,7 +115,7 @@ if __name__=="__main__":
                             actions[index,state[0][2]] = float(state[0][1])
                             index += 1
                         train_step(screens,actions)
-                    if i % 10 == 0:
+                    if i % 5 == 0:
                         #save
                         print("saving at iteration {}, with epsilon of {}".format(i,current_epsilon))
                         saver.save(sess,args.save_folder+'model.ckpt', global_step=current_step)
@@ -127,11 +127,12 @@ if __name__=="__main__":
                         #do a test run
                         sim.reset()
                         for j in range(5):
-                            display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
+                            game_score = run_test_games(sim,learner,number_of_steps=200,display=True,play_itself=0)
+                            print("game score and length of games",game_score[-1],len(game_score))
                 except KeyboardInterrupt:
                     #do a test run
                     sim.reset()
-                    for j in range(5):
+                    for j in range(4):
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True)
                         print("displaying against weak Pong AI")
                         display_state_list = make_one_set(sim,learner,0,number_of_steps=100,display=True,play_itself=0)

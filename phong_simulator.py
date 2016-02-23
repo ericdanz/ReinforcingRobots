@@ -41,17 +41,20 @@ class Simulator:
                 #go down
                 self.other_paddle_location[0] += int(self.screen_size/(self.state_space))
 
-            return None,None,None,0
+        return None,None,None,0
 
     def render(self):
         #blank the screen
         self.screen = np.random.randn(self.screen.shape[0],self.screen.shape[1],self.screen.shape[2])/1000
         #draw the paddles
-        self.screen[int(self.paddle_location[0]-self.paddle_size):int(self.paddle_location[0]+self.paddle_size),int(self.paddle_location[1]-1):int(self.paddle_location[1]+1),0] = 1
-        self.screen[int(self.other_paddle_location[0]-self.paddle_size):int(self.other_paddle_location[0]+self.paddle_size),int(self.other_paddle_location[1]-1):int(self.other_paddle_location[1]+1),0] = 1
+        self.screen[int(self.paddle_location[0]-self.paddle_size/2):int(self.paddle_location[0]+self.paddle_size/2),int(self.paddle_location[1]-1):int(self.paddle_location[1]+1),0] = 1
+        self.screen[int(self.other_paddle_location[0]-self.paddle_size/2):int(self.other_paddle_location[0]+self.paddle_size/2),int(self.other_paddle_location[1]-1):int(self.other_paddle_location[1]+1),0] = 1
         #move the ball
         self.ball_location += self.ball_direction*2
         self.check_max()
+        #add a reward for being on the same row as the ball
+        #this is lessened by the distance of the ball from the paddle
+        # self.score -= np.abs((self.ball_location[0]-self.paddle_location[0])/self.screen_size)*np.power(self.ball_location[1]/self.screen_size,2)
         #draw the ball
         xx, yy = np.mgrid[:self.screen.shape[0], :self.screen.shape[1]]
         circle = (xx - self.ball_location[0]) ** 2 + (yy - self.ball_location[1]) ** 2
@@ -91,11 +94,11 @@ class Simulator:
     def did_score(self):
         #check if the ball has gone past the paddles
         if self.ball_location[1] > self.paddle_location[1] + 1:
-            self.reset(self.reward,points_made = self.points_made + 1) #maintain a count of how many times someone scored
-            return -1
+            self.reset(self.reward,self.score-1,points_made = self.points_made + 1) #maintain a count of how many times someone scored
+            return self.score
         if self.ball_location[1] < self.other_paddle_location[1] - 1 :
-            self.reset(self.reward,points_made = self.points_made + 1)
-            return 1
+            self.reset(self.reward,self.score+1,points_made = self.points_made + 1)
+            return self.score
         return 0
 
 
@@ -110,18 +113,18 @@ class Simulator:
             self.ball_direction[0] *= -1
 
         #check if the paddle has gone over the edge, and hold it onscreen
-        if self.paddle_location[0] < self.paddle_size*.9:
+        if self.paddle_location[0] < self.paddle_size*.99:
             self.paddle_location[0] = int(self.paddle_size)
-        if self.paddle_location[0] > self.screen_size - self.paddle_size*.9:
+        if self.paddle_location[0] > self.screen_size - self.paddle_size*.99:
             self.paddle_location[0] = int(self.screen_size - self.paddle_size)
         #check if the other paddle has gone over the edge, and hold it onscreen
-        if self.other_paddle_location[0] < self.paddle_size*.9:
+        if self.other_paddle_location[0] < self.paddle_size*.99:
             self.other_paddle_location[0] = int(self.paddle_size)
-        if self.other_paddle_location[0] > self.screen_size - self.paddle_size*.9:
+        if self.other_paddle_location[0] > self.screen_size - self.paddle_size*.99:
             self.other_paddle_location[0] = int(self.screen_size - self.paddle_size)
 
         #check if the paddle hits the ball
-        if (self.ball_location[0] > self.paddle_location[0]-self.paddle_size) and (self.ball_location[0] < self.paddle_location[0] + self.paddle_size) and (self.ball_location[1] > self.paddle_location[1] - 2) and (self.ball_location[1] < self.paddle_location[1] + 2):
+        if (self.ball_location[0] > self.paddle_location[0]-self.paddle_size*.9) and (self.ball_location[0] < self.paddle_location[0] + self.paddle_size*.9) and (self.ball_location[1] > self.paddle_location[1] - self.ball_size) and (self.ball_location[1] < self.paddle_location[1] + self.ball_size):
             self.ball_direction[1] *= -1
             #check for edge hits, and increase the y velocity and decrease the x velocity
             if (self.ball_location[0] < self.paddle_location[0]-self.paddle_size/3):
@@ -132,7 +135,7 @@ class Simulator:
                 #increase neg y velocity
                 self.ball_direction[0] += 1
         #check if the other paddle hits the ball
-        if (self.ball_location[0] > self.other_paddle_location[0]-self.paddle_size) and (self.ball_location[0] < self.other_paddle_location[0] + self.paddle_size) and (self.ball_location[1] > self.other_paddle_location[1] - 2) and (self.ball_location[1] < self.other_paddle_location[1] + 2):
+        if (self.ball_location[0] > self.other_paddle_location[0]-self.paddle_size*.9) and (self.ball_location[0] < self.other_paddle_location[0] + self.paddle_size*.9) and (self.ball_location[1] > self.other_paddle_location[1] - 2) and (self.ball_location[1] < self.other_paddle_location[1] + 2):
             self.ball_direction[1] *= -1
             #check for edge hits, and increase the y velocity and decrease the x velocity
             if (self.ball_location[0] < self.other_paddle_location[0]-self.paddle_size/3):
